@@ -126,3 +126,4 @@ docker-compose.prod.yml
 .kiro/cache/
 .kiro/logs/
 .kiro/temp/
+.kiro/specs/*/tasks.md
