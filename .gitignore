@@ -119,3 +119,6 @@ docker-compose.prod.yml
 .env.development
 .env.test
 .env.production
+
+
+.kiro
