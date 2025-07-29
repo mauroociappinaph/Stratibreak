@@ -11,12 +11,21 @@ export class NotificationsService {
     notification: NotificationRequest
   ): Promise<NotificationResponse> {
     // Placeholder implementation
-    console.log('Sending notification to:', notification.recipient);
+    console.log('Sending notification to:', notification.recipients);
 
     return {
       notificationId: 'placeholder-notification',
       status: 'sent',
-      recipient: notification.recipient,
+      recipients: notification.recipients.map(recipient => ({
+        recipient,
+        status: 'sent',
+        sentAt: new Date(),
+      })),
+      type: notification.type,
+      subject: notification.subject,
+      priority: notification.priority || 'medium',
+      category: notification.category,
+      createdAt: new Date(),
       sentAt: new Date(),
     };
   }
