@@ -7,12 +7,13 @@ import type {
   Recommendation,
 } from '../api';
 import type { SeverityLevel } from '../database';
+import type { TrendDirection } from '../database/state.types';
 
 // Gap Analysis Service Types
 export interface IGapAnalysisService {
   analyzeProject(projectData: ProjectAnalysisData): Promise<GapAnalysisResult>;
   identifyDiscrepancies(
-    current: ProjectState,
+    current: ServiceProjectState,
     target: ProjectGoals
   ): Promise<Gap[]>;
   categorizeGaps(gaps: Gap[]): Promise<CategorizedGaps>;
@@ -22,16 +23,16 @@ export interface IGapAnalysisService {
 export interface ProjectAnalysisData {
   projectId: string;
   projectName: string;
-  currentState: ProjectState;
+  currentState: ServiceProjectState;
   targetGoals: ProjectGoals;
   historicalData?: Record<string, unknown>;
 }
 
-export interface ProjectState {
+export interface ServiceProjectState {
   progress: number;
-  resources: ResourceState;
-  timeline: TimelineState;
-  quality: QualityState;
+  resources: ServiceResourceState;
+  timeline: ServiceTimelineState;
+  quality: ServiceQualityState;
 }
 
 export interface ProjectGoals {
@@ -64,7 +65,7 @@ export interface IPredictiveService {
   predictFutureIssues(historicalData: HistoricalData): Promise<Prediction[]>;
   generateEarlyWarnings(currentTrends: TrendData): Promise<Alert[]>;
   calculateRiskProbability(
-    indicators: RiskIndicator[]
+    indicators: ServiceRiskIndicator[]
   ): Promise<RiskAssessment>;
   updatePredictionModels(newData: ProjectAnalysisData): Promise<void>;
 }
@@ -95,7 +96,7 @@ export interface Alert {
   recommendedActions: string[];
 }
 
-export interface RiskIndicator {
+export interface ServiceRiskIndicator {
   indicator: string;
   currentValue: number;
   threshold: number;
@@ -107,7 +108,7 @@ export interface RiskAssessment {
   overallRisk: 'low' | 'medium' | 'high' | 'critical';
   probability: number;
   confidence: number;
-  keyRisks: RiskIndicator[];
+  keyRisks: ServiceRiskIndicator[];
 }
 
 // Integration Service Types
@@ -117,7 +118,9 @@ export interface IIntegrationService {
     credentials: Record<string, string>
   ): Promise<ConnectionResponse>;
   syncData(connectionId: string): Promise<SyncResult>;
-  handleIntegrationFailure(error: IntegrationError): Promise<RecoveryAction>;
+  handleIntegrationFailure(
+    error: ServiceIntegrationError
+  ): Promise<RecoveryAction>;
   validateDataConsistency(
     localData: unknown,
     externalData: unknown
@@ -132,7 +135,7 @@ export interface SyncResult {
   lastSync: Date;
 }
 
-export interface IntegrationError {
+export interface ServiceIntegrationError {
   connectionId: string;
   errorType: string;
   message: string;
@@ -187,8 +190,8 @@ export interface NotificationFilters {
   };
 }
 
-// Common Types
-export interface ResourceState {
+// Service-specific Types (avoiding conflicts with database types)
+export interface ServiceResourceState {
   allocated: number;
   available: number;
   utilization: number;
@@ -200,20 +203,20 @@ export interface ResourceRequirements {
   optimal: number;
 }
 
-export interface TimelineState {
+export interface ServiceTimelineState {
   startDate: Date;
   currentDate: Date;
   endDate: Date;
-  milestones: Milestone[];
+  milestones: ServiceMilestone[];
 }
 
 export interface TimelineRequirements {
   targetEndDate: Date;
-  criticalMilestones: Milestone[];
+  criticalMilestones: ServiceMilestone[];
   bufferTime: number;
 }
 
-export interface QualityState {
+export interface ServiceQualityState {
   currentScore: number;
   defectRate: number;
   testCoverage: number;
@@ -225,7 +228,7 @@ export interface QualityRequirements {
   requiredTestCoverage: number;
 }
 
-export interface Milestone {
+export interface ServiceMilestone {
   id: string;
   name: string;
   targetDate: Date;
@@ -241,11 +244,5 @@ export interface ProjectEvent {
   impact: 'positive' | 'negative' | 'neutral';
 }
 
-export enum TrendDirection {
-  IMPROVING = 'improving',
-  STABLE = 'stable',
-  DECLINING = 'declining',
-  VOLATILE = 'volatile',
-}
-
-// SeverityLevel is imported from database types to avoid duplication
+// Re-export database types with aliases to avoid conflicts
+export type { SeverityLevel, TrendDirection };
