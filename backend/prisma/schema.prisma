@@ -17,17 +17,26 @@ model User {
   password  String
   firstName String?
   lastName  String?
-  role      UserRole @default(USER)
+  role      UserRole @default(STAKEHOLDER)
   isActive  Boolean  @default(true)
+  tenantId  String // For multitenancy support
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   projects     Project[]
   gaps         Gap[]
   predictions  Prediction[]
   integrations Integration[]
+  auditLogs    AuditLog[]
 
+  // Indexes for performance
+  @@index([tenantId])
+  @@index([email, tenantId])
+  @@index([role, tenantId])
+  @@index([isActive, tenantId])
+  @@index([createdAt])
   @@map("users")
 }
 
@@ -38,60 +47,95 @@ model Project {
   status      ProjectStatus @default(ACTIVE)
   startDate   DateTime?
   endDate     DateTime?
+  tenantId    String // For multitenancy support
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
   // Relations
-  userId       String
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  gaps         Gap[]
-  predictions  Prediction[]
-  integrations Integration[]
+  userId          String
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant          Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  gaps            Gap[]
+  predictions     Prediction[]
+  integrations    Integration[]
+  stakeholders    ProjectStakeholder[]
+  goals           ProjectGoal[]
+  analysisHistory AnalysisRecord[]
 
+  // Indexes for performance
+  @@index([tenantId])
+  @@index([userId, tenantId])
+  @@index([status, tenantId])
+  @@index([startDate, endDate])
+  @@index([createdAt])
+  @@index([name, tenantId])
   @@map("projects")
 }
 
 model Gap {
-  id          String    @id @default(cuid())
-  title       String
-  description String
-  type        GapType
-  severity    Severity
-  status      GapStatus @default(OPEN)
-  impact      String?
-  rootCause   String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  title        String
+  description  String
+  type         GapType
+  severity     Severity
+  status       GapStatus @default(OPEN)
+  currentValue Json? // Flexible field for current state data
+  targetValue  Json? // Flexible field for target state data
+  impact       String?
+  identifiedAt DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   // Relations
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId     String
+  project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rootCauses    RootCause[]
+  affectedAreas ProjectArea[]
 
+  // Indexes for performance
+  @@index([projectId])
+  @@index([userId])
+  @@index([type, severity])
+  @@index([status, projectId])
+  @@index([identifiedAt])
+  @@index([createdAt])
   @@map("gaps")
 }
 
 model Prediction {
-  id          String           @id @default(cuid())
-  title       String
-  description String
-  type        PredictionType
-  probability Float            @db.DoublePrecision
-  impact      Severity
-  status      PredictionStatus @default(PENDING)
-  predictedAt DateTime
-  actualAt    DateTime?
-  accuracy    Float?           @db.DoublePrecision
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id                        String           @id @default(cuid())
+  title                     String
+  description               String
+  type                      PredictionType
+  probability               Float            @db.DoublePrecision
+  impact                    Severity
+  status                    PredictionStatus @default(PENDING)
+  predictedAt               DateTime
+  actualAt                  DateTime?
+  accuracy                  Float?           @db.DoublePrecision
+  estimatedTimeToOccurrence Int? // in hours
+  preventionWindow          Int? // in hours
+  createdAt                 DateTime         @default(now())
+  updatedAt                 DateTime         @updatedAt
 
   // Relations
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId        String
+  project          Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  suggestedActions PreventiveAction[]
+  riskIndicators   RiskIndicator[]
 
+  // Indexes for performance
+  @@index([projectId])
+  @@index([userId])
+  @@index([type, status])
+  @@index([probability, impact])
+  @@index([predictedAt])
+  @@index([status, predictedAt])
+  @@index([createdAt])
   @@map("predictions")
 }
 
@@ -100,27 +144,263 @@ model Integration {
   name         String
   type         IntegrationType
   status       IntegrationStatus @default(INACTIVE)
-  config       Json
+  config       Json // Tool-specific configuration
+  credentials  Json // Encrypted credentials
   lastSyncAt   DateTime?
   syncInterval Int? // in minutes
   isActive     Boolean           @default(true)
+  errorCount   Int               @default(0)
+  lastError    String?
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
 
   // Relations
+  projectId   String
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  syncResults SyncResult[]
+  dataMapping FieldMapping[]
+
+  @@unique([projectId, type]) // One integration per type per project
+  // Indexes for performance
+  @@index([projectId])
+  @@index([userId])
+  @@index([type, status])
+  @@index([isActive, status])
+  @@index([lastSyncAt])
+  @@index([createdAt])
+  @@map("integrations")
+}
+
+// New supporting entities
+model Tenant {
+  id                  String   @id @default(cuid())
+  organizationName    String   @unique
+  dataEncryptionKey   String
+  retentionPolicyDays Int      @default(365)
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  users    User[]
+  projects Project[]
+
+  // Indexes for performance
+  @@index([isActive])
+  @@index([createdAt])
+  @@map("tenants")
+}
+
+model ProjectStakeholder {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  role      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("integrations")
+  @@unique([projectId, email]) // One stakeholder per email per project
+  // Indexes for performance
+  @@index([projectId])
+  @@index([email])
+  @@map("project_stakeholders")
+}
+
+model ProjectGoal {
+  id           String    @id @default(cuid())
+  title        String
+  description  String?
+  targetValue  Json
+  currentValue Json?
+  dueDate      DateTime?
+  isAchieved   Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Indexes for performance
+  @@index([projectId])
+  @@index([isAchieved, projectId])
+  @@index([dueDate])
+  @@map("project_goals")
+}
+
+model AnalysisRecord {
+  id            String   @id @default(cuid())
+  analysisType  String // gap_analysis, prediction, etc.
+  results       Json
+  overallScore  Float?   @db.DoublePrecision
+  executionTime Int // in milliseconds
+  createdAt     DateTime @default(now())
+
+  // Relations
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Indexes for performance
+  @@index([projectId])
+  @@index([analysisType, projectId])
+  @@index([createdAt])
+  @@index([overallScore])
+  @@map("analysis_records")
+}
+
+model RootCause {
+  id          String   @id @default(cuid())
+  description String
+  category    String // process, resource, communication, etc.
+  confidence  Float    @db.DoublePrecision
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  gapId String
+  gap   Gap    @relation(fields: [gapId], references: [id], onDelete: Cascade)
+
+  // Indexes for performance
+  @@index([gapId])
+  @@index([category])
+  @@index([confidence])
+  @@map("root_causes")
+}
+
+model ProjectArea {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  impactLevel Severity
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  gapId String
+  gap   Gap    @relation(fields: [gapId], references: [id], onDelete: Cascade)
+
+  // Indexes for performance
+  @@index([gapId])
+  @@index([impactLevel])
+  @@map("project_areas")
+}
+
+model PreventiveAction {
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  priority        Severity
+  estimatedEffort Int // in hours
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  predictionId String
+  prediction   Prediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  // Indexes for performance
+  @@index([predictionId])
+  @@index([priority])
+  @@map("preventive_actions")
+}
+
+model RiskIndicator {
+  id           String         @id @default(cuid())
+  indicator    String
+  currentValue Float          @db.DoublePrecision
+  threshold    Float          @db.DoublePrecision
+  trend        TrendDirection
+  weight       Float          @db.DoublePrecision
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  // Relations
+  predictionId String
+  prediction   Prediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  // Indexes for performance
+  @@index([predictionId])
+  @@index([indicator])
+  @@index([trend])
+  @@map("risk_indicators")
+}
+
+model SyncResult {
+  id           String   @id @default(cuid())
+  status       String // success, error, partial
+  recordsSync  Int      @default(0)
+  errorMessage String?
+  syncDuration Int // in milliseconds
+  createdAt    DateTime @default(now())
+
+  // Relations
+  integrationId String
+  integration   Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  // Indexes for performance
+  @@index([integrationId])
+  @@index([status, createdAt])
+  @@index([createdAt])
+  @@map("sync_results")
+}
+
+model FieldMapping {
+  id             String   @id @default(cuid())
+  externalField  String
+  internalField  String
+  transformation String? // JSON transformation rules
+  isRequired     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  integrationId String
+  integration   Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@unique([integrationId, externalField]) // One mapping per external field per integration
+  // Indexes for performance
+  @@index([integrationId])
+  @@index([externalField])
+  @@index([internalField])
+  @@map("field_mappings")
+}
+
+model AuditLog {
+  id           String      @id @default(cuid())
+  action       AuditAction
+  resourceType String
+  resourceId   String
+  ipAddress    String?
+  userAgent    String?
+  dataHash     String?
+  createdAt    DateTime    @default(now())
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Indexes for performance and compliance
+  @@index([userId])
+  @@index([action, createdAt])
+  @@index([resourceType, resourceId])
+  @@index([createdAt])
+  @@index([ipAddress])
+  @@map("audit_logs")
 }
 
 // Enums
 enum UserRole {
   ADMIN
-  MANAGER
-  USER
+  PROJECT_MANAGER
+  TEAM_LEADER
+  STAKEHOLDER
+  ANALYST
 }
 
 enum ProjectStatus {
@@ -132,12 +412,13 @@ enum ProjectStatus {
 
 enum GapType {
   RESOURCE
-  SKILL
   PROCESS
-  TECHNOLOGY
   COMMUNICATION
+  TECHNOLOGY
+  CULTURE
   TIMELINE
   QUALITY
+  SKILL
   BUDGET
 }
 
@@ -180,6 +461,7 @@ enum IntegrationType {
   SLACK
   GITHUB
   GITLAB
+  TEAMS
 }
 
 enum IntegrationStatus {
@@ -187,4 +469,24 @@ enum IntegrationStatus {
   INACTIVE
   ERROR
   SYNCING
+}
+
+enum TrendDirection {
+  UP
+  DOWN
+  STABLE
+  VOLATILE
+}
+
+enum AuditAction {
+  VIEW_GAP_ANALYSIS
+  MODIFY_PROJECT
+  ACCESS_PREDICTION
+  EXPORT_DATA
+  CONFIGURE_INTEGRATION
+  CREATE_USER
+  UPDATE_USER
+  DELETE_USER
+  LOGIN
+  LOGOUT
 }
