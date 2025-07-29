@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Injectable } from '@nestjs/common';
 import type { NotificationRequest, NotificationResponse } from '../../../types';
 
