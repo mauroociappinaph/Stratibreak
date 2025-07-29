@@ -1,3 +1,2 @@
-// Gap Analysis DTOs
-// Export DTOs here when created
-export {};
+export * from './create-gap-analysis.dto';
+export * from './update-gap-analysis.dto';

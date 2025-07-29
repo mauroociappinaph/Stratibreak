@@ -1,3 +1,1 @@
-// Gap Analysis Entities
-// Export entities here when created
-export {};
+export * from './gap-analysis.entity';

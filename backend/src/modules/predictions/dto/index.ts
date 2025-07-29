@@ -1,3 +1,2 @@
-// Predictions DTOs
-// Export DTOs here when created
-export {};
+export * from './create-prediction.dto';
+export * from './update-prediction.dto';

@@ -1,3 +1,2 @@
-// Auth DTOs
-// Export DTOs here when created
-export {};
+export * from './login.dto';
+export * from './register.dto';

@@ -1,3 +1,8 @@
 // Notifications Module Barrel Exports
-// Exports will be added as components are implemented
-export {};
+export * from './controllers';
+export * from './services';
+
+// TODO: Add these exports when DTOs, entities, and interfaces are created
+// export * from './dto';
+// export * from './entities';
+// export * from './interfaces';

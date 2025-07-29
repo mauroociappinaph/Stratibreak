@@ -1,3 +1,2 @@
 // Notifications Entities
-// Export entities here when created
-export {};
+// TODO: Add entities when created

@@ -12,10 +12,10 @@ The project has a basic NestJS backend structure with module directories created
   - Configure development environment and dependencies
   - _Requirements: Project foundation_
 
-- [-] 0.1 Create initial module structure and files
+- [x] 0.1 Create initial module structure and files
   - [x] 0.1.a Create NestJS module files for all business modules (gap-analysis, auth, integrations, predictions, notifications)
-  - [ ] 0.1.b Setup initial service, controller, and DTO files with basic structure
-  - [ ] 0.1.c Configure barrel exports in all index.ts files
+  - [x] 0.1.b Setup initial service, controller, and DTO files with basic structure
+  - [x] 0.1.c Configure barrel exports in all index.ts files
   - _Requirements: Project foundation_
 
 - [ ] 0.2 Setup common utilities structure
