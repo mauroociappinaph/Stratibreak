@@ -18,9 +18,9 @@ export class AppController {
         message: { type: 'string' },
         timestamp: { type: 'string' },
         version: { type: 'string' },
-        environment: { type: 'string' }
-      }
-    }
+        environment: { type: 'string' },
+      },
+    },
   })
   getHealth(): object {
     return this.appService.getHealth();

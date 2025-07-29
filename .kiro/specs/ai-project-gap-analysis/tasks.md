@@ -11,7 +11,6 @@
 ## 1. Configuración del Entorno de Desarrollo y Estructura Base [FASE 1 - MVP]
 
 - [x] 1.1 Inicializar proyecto y configurar herramientas básicas
-
   - Crear package.json con PNPM workspaces para monorepo
   - Configurar TypeScript en modo strict con tsconfig.json
   - Configurar ESLint y Prettier con reglas estrictas (no-any, max-lines: 300)
@@ -21,7 +20,8 @@
 
 - [ ] 1.2 Configurar backend con NestJS
 
-  - [ ] 1.2.a Inicializar aplicación NestJS base
+- [] 1.1 Inicializar proyecto y configurar herramientas básicas
+  - [x] 1.2.a Inicializar aplicación NestJS base
     - Instalar dependencias de NestJS (@nestjs/core, @nestjs/common, @nestjs/platform-express)
     - Crear archivo main.ts con bootstrap básico
     - Crear app.module.ts como módulo raíz
@@ -53,7 +53,6 @@
   - _Requisitos: 7.1, 7.2 - Automatización y reducción de trabajo manual_
 
 - [ ] 1.3 Configurar herramientas de desarrollo
-
   - [ ] 1.3.a Configurar Husky y pre-commit hooks
     - Instalar Husky y lint-staged como dependencias de desarrollo
     - Configurar .husky/pre-commit con validaciones automáticas
@@ -81,7 +80,6 @@
 ## 2. Implementación de Infraestructura Base y Seguridad [FASE 1 - MVP]
 
 - [ ] 2.1 Configurar base de datos y persistencia
-
   - [ ] 2.1.a Configurar PostgreSQL y Prisma ORM
     - Instalar Prisma CLI y dependencias (@prisma/client, prisma)
     - Configurar conexión a PostgreSQL (local o Supabase)
@@ -108,7 +106,6 @@
   - _Requisitos: 1.1, 1.2 - Recopilación y procesamiento de datos_
 
 - [ ] 2.2 Implementar sistema de autenticación y autorización
-
   - [ ] 2.2.a Configurar NextAuth.js en frontend
     - Instalar NextAuth.js y dependencias de autenticación
     - Configurar providers básicos (credentials, Google OAuth)
@@ -135,7 +132,6 @@
   - _Requisitos: 8.1 - Dashboard personalizado según rol_
 
 - [ ] 2.3 Configurar API Gateway y seguridad
-
   - [ ] 2.3.a Implementar validación JWT básica
     - Configurar JWT strategy en NestJS con passport-jwt
     - Implementar middleware de validación de tokens
@@ -164,7 +160,6 @@
 ## 3. Desarrollo del Core de Análisis de Brechas [FASE 1 - MVP]
 
 - [ ] 3.1 Crear modelos de datos y entidades base
-
   - [ ] 3.1.a Definir interfaces TypeScript en shared/types
     - Crear interfaces para Project, Gap, User, Integration
     - Definir enums para GapType, SeverityLevel, ProjectStatus
@@ -190,7 +185,6 @@
   - _Requisitos: 2.3 - Categorizar problemas por tipo_
 
 - [ ] 3.2 Implementar Motor de Análisis de Brechas
-
   - [ ] 3.2.a Crear servicio GapAnalysisEngine base
     - Implementar GapAnalysisService con inyección de dependencias
     - Crear métodos básicos: analyzeProject, identifyGaps, calculateSeverity
@@ -223,14 +217,12 @@
 ## 4. Sistema Predictivo y Alertas Tempranas [FASE 2 - Expansión]
 
 - [ ] 4.1 Configurar infraestructura de Machine Learning
-
   - **Fase 2**: Configurar FastAPI como interfaz Python-NestJS
   - **MVP**: Alertas básicas basadas en reglas simples
   - **Riesgo ML**: Comenzar con reglas heurísticas, ML cuando tengamos datos
   - _Requisitos: 3.1 - Utilizar datos históricos para predicciones_
 
 - [ ] 4.2 Desarrollar Motor Predictivo [FASE 2]
-
   - **Fase 2**: Implementar PredictiveEngine con ML
   - **MVP**: Sistema de alertas basado en umbrales configurables
   - **Expectativa realista**: Comenzar con 24h anticipación, no 72h
@@ -244,14 +236,12 @@
 ## 5. Generador de Planes de Acción Automatizados [FASE 2 - Expansión]
 
 - [ ] 5.1 Configurar LLM local para generación de planes
-
   - **Fase 2**: Instalar y configurar Ollama con Llama 3.1
   - **MVP**: Templates estáticos de planes de acción
   - **Free Tier**: Usar OpenAI API con límites antes que infraestructura local
   - _Requisitos: 4.1 - Generar planes de acción específicos y procesables_
 
 - [ ] 5.2 Desarrollar ActionPlanGenerator [FASE 2]
-
   - **MVP**: Generación básica con templates predefinidos
   - **Fase 2**: Algoritmos de priorización y estimación automática
   - _Requisitos: 4.2, 4.3 - Pasos detallados y ranking de soluciones_
@@ -264,14 +254,12 @@
 ## 6. Sistema de Integraciones Externas [FASE 1 - MVP]
 
 - [ ] 6.1 Desarrollar framework de integraciones
-
   - Crear IntegrationService base con patrón adapter
   - **MVP**: Credenciales en variables de entorno, Vault en Fase 2
   - **MVP Focus**: Solo 1 integración (Jira) para validar concepto
   - _Requisitos: 6.1 - Conectarse con herramientas populares_
 
 - [ ] 6.2 Implementar conectores específicos [FASE 1 - MVP]
-
   - **MVP**: Solo conector Jira con sincronización unidireccional
   - **Fase 2**: Asana, Trello, Monday.com y Bitrix24
   - **Validación**: Probar con datos reales antes de expandir
@@ -285,7 +273,6 @@
 ## 7. Dashboard y Frontend Especializado [FASE 1 - MVP]
 
 - [ ] 7.1 Configurar base del frontend con Next.js
-
   - Configurar Next.js 14 con App Router y TypeScript
   - Configurar Tailwind CSS + ShadCN/UI para componentes
   - **MVP**: Estado local con useState, TanStack Query en Fase 2
@@ -293,7 +280,6 @@
   - _Requisitos: 8.1 - Dashboard personalizado según rol_
 
 - [ ] 7.2 Desarrollar componentes de visualización de brechas [FASE 1 - MVP]
-
   - **MVP**: Gráficos básicos con Recharts (barras, líneas)
   - **Fase 2**: Visualizaciones predictivas y mapas de calor
   - **MVP Focus**: 3-4 gráficos esenciales para validar utilidad
@@ -308,14 +294,12 @@
 ## 8. Monitoreo en Tiempo Real y Métricas [FASE 3 - Optimización]
 
 - [ ] 8.1 Configurar sistema de monitoreo de métricas
-
   - **Fase 3**: Prometheus y Grafana para monitoreo avanzado
   - **MVP**: Logging básico y health checks simples
   - **Free Tier**: Usar servicios gratuitos como Uptime Robot
   - _Requisitos: 5.1 - Rastrear eficiencia operativa e indicadores de riesgo_
 
 - [ ] 8.2 Desarrollar sistema de métricas de negocio [FASE 2]
-
   - **MVP**: Métricas básicas calculadas en backend
   - **Fase 2**: Tracking en tiempo real y umbrales dinámicos
   - _Requisitos: 5.2, 5.3 - Actualizar dashboards en tiempo real y umbrales críticos_
@@ -328,14 +312,12 @@
 ## 9. Testing Integral y Validación [FASE 1 - MVP]
 
 - [ ] 9.1 Implementar testing de componentes core
-
   - **MVP**: Tests unitarios básicos para GapAnalysisEngine (>60% cobertura)
   - **Expectativa realista**: Precisión >70% inicialmente, mejorar iterativamente
   - **MVP Focus**: Tests de integración para funcionalidad crítica
   - _Requisitos: 2.1, 2.2, 4.1 - Validar funcionalidad core del análisis_
 
 - [ ] 9.2 Testing de integraciones externas [FASE 1 - MVP]
-
   - **MVP**: Mocks para Jira API únicamente
   - **MVP**: Tests básicos de manejo de errores de red
   - **Fase 2**: Tests completos para múltiples integraciones
@@ -350,7 +332,6 @@
 ## 10. Despliegue y Configuración de Producción [FASE 1 - MVP]
 
 - [ ] 10.1 Configurar containerización y orquestación
-
   - **MVP**: Dockerfiles básicos para despliegue
   - **MVP**: Docker Compose para desarrollo local
   - **Fase 3**: Kubernetes para escalabilidad
@@ -358,7 +339,6 @@
   - _Requisitos: 7.1, 7.2 - Automatizar entrada de datos y generación de informes_
 
 - [ ] 10.2 Configurar monitoreo y logging en producción [FASE 1 - MVP]
-
   - **MVP**: Sentry gratuito para tracking de errores
   - **MVP**: Logging básico con Winston
   - **Fase 3**: ELK Stack y Jaeger para monitoreo avanzado
@@ -374,14 +354,12 @@
 ## 11. Optimización y Machine Learning Avanzado [FASE 3 - Optimización]
 
 - [ ] 11.1 Optimizar modelos predictivos [FASE 3]
-
   - **Fase 3**: Reentrenamiento automático cuando tengamos datos suficientes
   - **Expectativa realista**: Comenzar con 24h anticipación, no 72h
   - **Datos requeridos**: Mínimo 6 meses de datos antes de ML avanzado
   - _Requisitos: 3.1, 3.2 - Mejorar predicciones con 72+ horas anticipación_
 
 - [ ] 11.2 Implementar aprendizaje automático del sistema [FASE 3]
-
   - **Fase 3**: Feedback loops y aprendizaje automático
   - **MVP**: Mejoras manuales basadas en feedback de usuarios
   - _Requisitos: 7.4 - Aprender automáticamente y mejorar predicciones_
