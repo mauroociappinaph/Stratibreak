@@ -5,32 +5,24 @@ module.exports = {
     sourceType: 'module',
     project: './tsconfig.json',
   },
-  plugins: ['@typescript-eslint'],
-
+  plugins: ['@typescript-eslint', 'simple-import-sort'],
+  extends: ['eslint:recommended', '@typescript-eslint/recommended', 'prettier'],
   rules: {
-    // TypeScript strict rules
     '@typescript-eslint/no-explicit-any': 'error',
     '@typescript-eslint/no-unused-vars': 'error',
     '@typescript-eslint/explicit-function-return-type': 'warn',
-
-    // Code quality rules
     'max-lines': [
       'error',
       { max: 300, skipBlankLines: true, skipComments: true },
     ],
     complexity: ['error', 10],
     'max-depth': ['error', 4],
-    'max-params': ['error', 5],
-
-    // Production safety
     'no-console': 'error',
     'no-debugger': 'error',
-
-    // Code consistency
     'prefer-const': 'error',
     'no-var': 'error',
-    'object-shorthand': 'error',
-    'prefer-template': 'error',
+    'simple-import-sort/imports': 'error',
+    'simple-import-sort/exports': 'error',
   },
   env: {
     node: true,
