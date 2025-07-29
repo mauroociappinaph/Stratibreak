@@ -15,7 +15,7 @@ async function bootstrap(): Promise<void> {
       transformOptions: {
         enableImplicitConversion: true,
       },
-    }),
+    })
   );
 
   // CORS configuration
@@ -42,10 +42,12 @@ async function bootstrap(): Promise<void> {
   await app.listen(port);
 
   console.log(`🚀 Backend server running on http://localhost:${port}`);
-  console.log(`📚 API Documentation available at http://localhost:${port}/api/docs`);
+  console.log(
+    `📚 API Documentation available at http://localhost:${port}/api/docs`
+  );
 }
 
-bootstrap().catch((error) => {
+bootstrap().catch(error => {
   console.error('Failed to start the application:', error);
   process.exit(1);
 });
