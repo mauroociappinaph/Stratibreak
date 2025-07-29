@@ -49,24 +49,24 @@ The project has a basic NestJS backend structure with module directories created
   - _Requirements: 1.1, 2.1, 5.1, 6.1_
 
 - [ ] 1.3 Setup database migrations and seeding
-  - [ ] 1.3.a Create initial migration files
+  - [x] 1.3.a Create initial migration files
   - [x] 1.3.b Implement database seeding with sample data
-  - [ ] 1.3.c Add migration scripts to package.json
+  - [x] 1.3.c Add migration scripts to package.json
   - _Requirements: 1.1, 2.1_
 
-- [ ] 2. Implement shared types and interfaces
+- [-] 2. Implement shared types and interfaces
   - Create TypeScript interfaces for all business entities
   - Define API request/response types
   - Implement service interfaces for dependency injection
   - _Requirements: 1.1, 2.1, 3.1, 4.1, 5.1_
 
-- [ ] 2.1 Create core business entity types
-  - [ ] 2.1.a Define Project, Gap, Prediction, and Integration interfaces
-  - [ ] 2.1.b Create enums for GapType, SeverityLevel, ProjectStatus
-  - [ ] 2.1.c Implement validation schemas with class-validator
+- [x] 2.1 Create core business entity types
+  - [x] 2.1.a Define Project, Gap, Prediction, and Integration interfaces
+  - [x] 2.1.b Create enums for GapType, SeverityLevel, ProjectStatus
+  - [x] 2.1.c Implement validation schemas with class-validator
   - _Requirements: 1.1, 2.1, 3.1_
 
-- [ ] 2.2 Define API and service interfaces
+- [-] 2.2 Define API and service interfaces
   - [ ] 2.2.a Create interfaces for all service contracts
   - [ ] 2.2.b Define API request/response DTOs
   - [ ] 2.2.c Implement error handling types
