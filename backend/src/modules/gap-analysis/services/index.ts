@@ -1,3 +1,2 @@
 // Gap Analysis Services
-// Export services here when created
-export {};
+export { GapAnalysisService } from './gap-analysis.service';

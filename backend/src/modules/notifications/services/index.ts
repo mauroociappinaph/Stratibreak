@@ -1,3 +1,2 @@
 // Notifications Services
-// Export services here when created
-export {};
+export { NotificationsService } from './notifications.service';

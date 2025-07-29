@@ -1,3 +1,2 @@
 // Predictions Controllers
-// Export controllers here when created
-export {};
+export { PredictionsController } from './predictions.controller';

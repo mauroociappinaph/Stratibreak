@@ -1,3 +1,2 @@
 // Integrations Controllers
-// Export controllers here when created
-export {};
+export { IntegrationsController } from './integrations.controller';

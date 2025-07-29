@@ -1,3 +1,2 @@
 // Gap Analysis Controllers
-// Export controllers here when created
-export {};
+export { GapAnalysisController } from './gap-analysis.controller';

@@ -1,3 +1,2 @@
 // Integrations Services
-// Export services here when created
-export {};
+export { IntegrationsService } from './integrations.service';

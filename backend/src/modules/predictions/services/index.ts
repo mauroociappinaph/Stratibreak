@@ -1,3 +1,2 @@
 // Predictions Services
-// Export services here when created
-export {};
+export { PredictionsService } from './predictions.service';

@@ -1,3 +1,2 @@
 // Auth Controllers
-// Export controllers here when created
-export {};
+export { AuthController } from './auth.controller';

@@ -1,3 +1,2 @@
 // Auth Services
-// Export services here when created
-export {};
+export { AuthService } from './auth.service';

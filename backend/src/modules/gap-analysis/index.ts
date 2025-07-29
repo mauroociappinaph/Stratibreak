@@ -1,3 +1,6 @@
 // Gap Analysis Module Barrel Exports
-// Exports will be added as components are implemented
-export {};
+export * from './controllers';
+export * from './dto';
+export * from './entities';
+export * from './interfaces';
+export * from './services';
