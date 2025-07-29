@@ -66,10 +66,10 @@ The project has a basic NestJS backend structure with module directories created
   - [x] 2.1.c Implement validation schemas with class-validator
   - _Requirements: 1.1, 2.1, 3.1_
 
-- [-] 2.2 Define API and service interfaces
-  - [ ] 2.2.a Create interfaces for all service contracts
-  - [ ] 2.2.b Define API request/response DTOs
-  - [ ] 2.2.c Implement error handling types
+- [ ] 2.2 Define API and service interfaces
+  - [x] 2.2.a Create interfaces for all service contracts
+  - [x] 2.2.b Define API request/response DTOs
+  - [x] 2.2.c Implement error handling types
   - _Requirements: 1.1, 2.1, 3.1, 4.1_
 
 - [ ] 3. Build common utilities and helpers
