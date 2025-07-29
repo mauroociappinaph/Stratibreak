@@ -1,7 +1,7 @@
 {
-  "name": "ai-project-gap-analysis",
+  "name": "stratibreak",
   "version": "1.0.0",
-  "description": "AI-Powered Project Gap Analysis Tool - SaaS solution for deep operational gap analysis",
+  "description": "Stratibreak - AI-Powered Project Gap Analysis Tool - SaaS solution for deep operational gap analysis",
   "private": true,
   "workspaces": [
     "backend",

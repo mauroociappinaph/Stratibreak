@@ -1,4 +1,6 @@
-# AI Project Gap Analysis Tool
+# Stratibreak
+
+**AI-Powered Project Gap Analysis Tool**
 
 A specialized SaaS solution that goes beyond traditional project management tools by focusing specifically on deep operational gap analysis using AI.
 

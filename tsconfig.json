@@ -41,9 +41,9 @@
     // Path mapping for clean imports
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["shared/src/*"],
-      "@backend/*": ["backend/src/*"],
-      "@frontend/*": ["frontend/src/*"]
+      "@stratibreak/shared/*": ["shared/src/*"],
+      "@stratibreak/backend/*": ["backend/src/*"],
+      "@stratibreak/frontend/*": ["frontend/src/*"]
     }
   },
   "include": [

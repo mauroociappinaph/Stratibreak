@@ -16,7 +16,7 @@ const nextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': './src',
-      '@shared': '../shared/src',
+      '@stratibreak/shared': '../shared/src',
     };
     return config;
   },

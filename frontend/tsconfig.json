@@ -26,7 +26,7 @@
       "@/hooks/*": ["hooks/*"],
       "@/stores/*": ["stores/*"],
       "@/types/*": ["types/*"],
-      "@shared/*": ["../../shared/src/*"]
+      "@stratibreak/shared/*": ["../../shared/src/*"]
     }
   },
   "include": [

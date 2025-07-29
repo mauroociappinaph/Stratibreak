@@ -9,7 +9,7 @@
       "@/types/*": ["types/*"],
       "@/modules/*": ["modules/*"],
       "@/config/*": ["config/*"],
-      "@shared/*": ["../../shared/src/*"]
+      "@stratibreak/shared/*": ["../../shared/src/*"]
     },
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
