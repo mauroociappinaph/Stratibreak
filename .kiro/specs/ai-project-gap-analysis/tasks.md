@@ -42,10 +42,10 @@ The project has a basic NestJS backend structure with module directories created
   - [x] 1.1.c Create initial schema.prisma file with basic entities
   - _Requirements: 1.1, 2.1_
 
-- [ ] 1.2 Create core database entities
-  - [ ] 1.2.a Define Project, Gap, Prediction, Integration, and User entities
-  - [ ] 1.2.b Implement relationships between entities
-  - [ ] 1.2.c Add proper indexes and constraints
+- [x] 1.2 Create core database entities
+  - [x] 1.2.a Define Project, Gap, Prediction, Integration, and User entities
+  - [x] 1.2.b Implement relationships between entities
+  - [x] 1.2.c Add proper indexes and constraints
   - _Requirements: 1.1, 2.1, 5.1, 6.1_
 
 - [ ] 1.3 Setup database migrations and seeding
