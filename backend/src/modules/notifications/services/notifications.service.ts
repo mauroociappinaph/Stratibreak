@@ -1,17 +1,22 @@
 import { Injectable } from '@nestjs/common';
+import type { NotificationRequest, NotificationResponse } from '../../../types';
 
 @Injectable()
 export class NotificationsService {
   // TODO: Implement notification logic
   // This is a placeholder implementation for task 0.1.b
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async sendNotification(notification: any): Promise<any> {
+  async sendNotification(
+    notification: NotificationRequest
+  ): Promise<NotificationResponse> {
     // Placeholder implementation
+    console.log('Sending notification to:', notification.recipient);
+
     return {
       notificationId: 'placeholder-notification',
       status: 'sent',
       recipient: notification.recipient,
+      sentAt: new Date(),
     };
   }
 }
