@@ -1,59 +1,38 @@
-// Database Entity Types
-export interface ProjectEntity {
-  id: string;
-  name: string;
-  description?: string;
-  status: ProjectStatus;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Database Entity Types - Barrel Exports
+// Re-export all types from separate files to maintain clean imports
 
-export interface UserEntity {
-  id: string;
-  email: string;
-  passwordHash: string;
-  role: UserRole;
-  tenantId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Project-related types
+export * from './project.types';
 
-export interface GapEntity {
-  id: string;
-  projectId: string;
-  type: GapType;
-  severity: SeverityLevel;
-  description: string;
-  currentValue: string;
-  targetValue: string;
-  identifiedAt: Date;
-  resolvedAt?: Date;
-}
+// State-related types
+export * from './state.types';
 
-export interface IntegrationEntity {
-  id: string;
-  tenantId: string;
-  toolType: ToolType;
-  connectionId: string;
-  status: ConnectionStatus;
-  credentials: Record<string, string>;
-  lastSync?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Integration-related types
+export * from './integration.types';
 
-export interface PredictionEntity {
-  id: string;
-  projectId: string;
-  type: string;
-  probability: number;
-  impact: ImpactLevel;
-  description: string;
-  estimatedTimeToOccurrence: string;
-  createdAt: Date;
-  resolvedAt?: Date;
-}
+// User-related types
+export * from './user.types';
 
+// Gap Analysis types (excluding Priority to avoid conflict)
+export type { GapEntity, Impact, ProjectArea, RootCause } from './gap.types';
+
+// Export enums as values for use in decorators
+export {
+  CriticalityLevel,
+  GapCategory,
+  GapStatus,
+  GapType,
+  ImpactLevel,
+  ImpactType,
+  Priority,
+  RootCauseCategory,
+  SeverityLevel,
+} from './gap.types';
+
+// Prediction types
+export * from './prediction.types';
+
+// Notification Entity
 export interface NotificationEntity {
   id: string;
   tenantId: string;
@@ -66,64 +45,14 @@ export interface NotificationEntity {
   createdAt: Date;
 }
 
-// Enums
-export enum ProjectStatus {
-  ACTIVE = 'active',
-  COMPLETED = 'completed',
-  ON_HOLD = 'on_hold',
-  CANCELLED = 'cancelled',
-}
-
-export enum UserRole {
-  ADMIN = 'admin',
-  PROJECT_MANAGER = 'project_manager',
-  TEAM_LEADER = 'team_leader',
-  STAKEHOLDER = 'stakeholder',
-  ANALYST = 'analyst',
-}
-
-export enum GapType {
-  RESOURCE = 'resource',
-  PROCESS = 'process',
-  COMMUNICATION = 'communication',
-  TECHNOLOGY = 'technology',
-  CULTURE = 'culture',
-  TIMELINE = 'timeline',
-  QUALITY = 'quality',
-}
-
-export enum SeverityLevel {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  CRITICAL = 'critical',
-}
-
-export enum ToolType {
-  JIRA = 'jira',
-  ASANA = 'asana',
-  TRELLO = 'trello',
-  MONDAY = 'monday',
-  BITRIX24 = 'bitrix24',
-}
-
-export enum ConnectionStatus {
-  CONNECTED = 'connected',
-  DISCONNECTED = 'disconnected',
-  ERROR = 'error',
-  PENDING = 'pending',
-}
-
-export enum ImpactLevel {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-}
-
+// Notification-related enums
 export enum NotificationType {
   EMAIL = 'email',
   IN_APP = 'in-app',
   WEBHOOK = 'webhook',
+  SMS = 'sms',
+  SLACK = 'slack',
+  TEAMS = 'teams',
 }
 
 export enum NotificationStatus {
@@ -131,4 +60,5 @@ export enum NotificationStatus {
   SENT = 'sent',
   FAILED = 'failed',
   DELIVERED = 'delivered',
+  READ = 'read',
 }
