@@ -1,0 +1,101 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Generar changelog desde el último tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          if [ -z "$PREVIOUS_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s" --no-merges)
+          else
+            CHANGELOG=$(git log --pretty=format:"- %s" --no-merges $PREVIOUS_TAG..HEAD)
+          fi
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            ## Changes in this Release
+            ${{ steps.changelog.outputs.changelog }}
+
+            ## Docker Images
+            - Backend: `${{ secrets.DOCKER_REGISTRY }}/backend:${{ github.ref_name }}`
+            - Frontend: `${{ secrets.DOCKER_REGISTRY }}/frontend:${{ github.ref_name }}`
+            - ML Services: `${{ secrets.DOCKER_REGISTRY }}/ml-services:${{ github.ref_name }}`
+          draft: false
+          prerelease: false
+
+  build-release-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build applications
+        run: |
+          pnpm --filter backend build
+          pnpm --filter frontend build
+
+      - name: Build and push release Docker images
+        env:
+          DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo $DOCKER_PASSWORD | docker login $DOCKER_REGISTRY -u $DOCKER_USERNAME --password-stdin
+
+          # Extract version from tag
+          VERSION=${GITHUB_REF#refs/tags/}
+
+          # Build and tag images with version
+          docker build -t $DOCKER_REGISTRY/backend:$VERSION ./backend
+          docker build -t $DOCKER_REGISTRY/frontend:$VERSION ./frontend
+          docker build -t $DOCKER_REGISTRY/ml-services:$VERSION ./ml-services
+
+          # Also tag as latest
+          docker tag $DOCKER_REGISTRY/backend:$VERSION $DOCKER_REGISTRY/backend:latest
+          docker tag $DOCKER_REGISTRY/frontend:$VERSION $DOCKER_REGISTRY/frontend:latest
+          docker tag $DOCKER_REGISTRY/ml-services:$VERSION $DOCKER_REGISTRY/ml-services:latest
+
+          # Push all tags
+          docker push $DOCKER_REGISTRY/backend:$VERSION
+          docker push $DOCKER_REGISTRY/frontend:$VERSION
+          docker push $DOCKER_REGISTRY/ml-services:$VERSION
+          docker push $DOCKER_REGISTRY/backend:latest
+          docker push $DOCKER_REGISTRY/frontend:latest
+          docker push $DOCKER_REGISTRY/ml-services:latest
