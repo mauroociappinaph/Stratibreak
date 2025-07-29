@@ -36,10 +36,10 @@ The project has a basic NestJS backend structure with module directories created
   - Setup database migrations and seeding
   - _Requirements: 1.1, 2.1, 5.1, 6.1_
 
-- [ ] 1.1 Install and configure Prisma ORM
-  - [ ] 1.1.a Add Prisma dependencies to backend package.json
-  - [ ] 1.1.b Initialize Prisma with PostgreSQL provider
-  - [ ] 1.1.c Create initial schema.prisma file with basic entities
+- [x] 1.1 Install and configure Prisma ORM
+  - [x] 1.1.a Add Prisma dependencies to backend package.json
+  - [x] 1.1.b Initialize Prisma with PostgreSQL provider
+  - [x] 1.1.c Create initial schema.prisma file with basic entities
   - _Requirements: 1.1, 2.1_
 
 - [ ] 1.2 Create core database entities
@@ -50,7 +50,7 @@ The project has a basic NestJS backend structure with module directories created
 
 - [ ] 1.3 Setup database migrations and seeding
   - [ ] 1.3.a Create initial migration files
-  - [ ] 1.3.b Implement database seeding with sample data
+  - [x] 1.3.b Implement database seeding with sample data
   - [ ] 1.3.c Add migration scripts to package.json
   - _Requirements: 1.1, 2.1_
 
