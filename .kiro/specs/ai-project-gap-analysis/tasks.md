@@ -24,10 +24,10 @@ The project has a basic NestJS backend structure with module directories created
   - [x] 0.2.c Setup configuration directory structure
   - _Requirements: Project foundation_
 
-- [ ] 0.3 Configure development dependencies and scripts
-  - [ ] 0.3.a Add missing development dependencies (Prisma, JWT, bcrypt, etc.)
-  - [ ] 0.3.b Update package.json scripts for database operations
-  - [ ] 0.3.c Setup environment configuration files
+- [x] 0.3 Configure development dependencies and scripts
+  - [x] 0.3.a Add missing development dependencies (Prisma, JWT, bcrypt, etc.)
+  - [x] 0.3.b Update package.json scripts for database operations
+  - [x] 0.3.c Setup environment configuration files
   - _Requirements: Project foundation_
 
 - [ ] 1. Setup core infrastructure and database layer
