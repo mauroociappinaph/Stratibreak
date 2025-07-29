@@ -1,4 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common';
+import type { ConnectionRequest, ConnectionResponse } from '../../../types';
 import { IntegrationsService } from '../services/integrations.service';
 
 @Controller('integrations')

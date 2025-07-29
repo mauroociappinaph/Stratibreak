@@ -1,4 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common';
+import type { PredictionRequest, PredictionResponse } from '../../../types';
 import { PredictionsService } from '../services/predictions.service';
 
 @Controller('predictions')
@@ -9,8 +10,9 @@ export class PredictionsController {
   // This is a placeholder implementation for task 0.1.b
 
   @Post('analyze')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async predictIssues(@Body() historicalData: any): Promise<any> {
-    return this.predictionsService.predictFutureIssues(historicalData);
+  async predictIssues(
+    @Body() request: PredictionRequest
+  ): Promise<PredictionResponse> {
+    return this.predictionsService.predictFutureIssues(request);
   }
 }
