@@ -37,4 +37,17 @@ module.exports = {
     es2022: true,
   },
   ignorePatterns: ['node_modules/', 'dist/', 'build/', 'coverage/'],
+  overrides: [
+    {
+      // Special rules for Prisma seed files
+      files: ['prisma/**/*.ts'],
+      parserOptions: {
+        project: null, // Disable project-based linting for prisma files
+      },
+      rules: {
+        'no-console': 'off', // Allow console.log in seed files
+        '@typescript-eslint/explicit-function-return-type': 'off',
+      },
+    },
+  ],
 };
