@@ -35,6 +35,8 @@
     "db:validate": "prisma validate",
     "db:reset": "prisma migrate reset --force && pnpm db:seed",
     "db:setup": "pnpm db:generate && pnpm db:push && pnpm db:seed",
+    "db:status": "prisma migrate status",
+    "db:deploy": "prisma migrate deploy && pnpm db:seed",
     "code-quality": "pnpm lint && pnpm type-check && pnpm unused && pnpm circular",
     "clean-code": "pnpm unused && pnpm lint:fix && pnpm format"
   },

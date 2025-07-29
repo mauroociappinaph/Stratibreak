@@ -274,14 +274,120 @@ async function main() {
     skipDuplicates: true,
   });
 
+  // Create project stakeholders
+  await prisma.projectStakeholder.createMany({
+    data: [
+      {
+        name: 'John Smith',
+        email: 'john.smith@company.com',
+        role: 'Product Owner',
+        projectId: ecommerceProject.id,
+      },
+      {
+        name: 'Sarah Johnson',
+        email: 'sarah.johnson@company.com',
+        role: 'Technical Lead',
+        projectId: ecommerceProject.id,
+      },
+      {
+        name: 'Mike Chen',
+        email: 'mike.chen@company.com',
+        role: 'UX Designer',
+        projectId: ecommerceProject.id,
+      },
+      {
+        name: 'Lisa Rodriguez',
+        email: 'lisa.rodriguez@company.com',
+        role: 'Mobile Lead',
+        projectId: mobileProject.id,
+      },
+      {
+        name: 'David Kim',
+        email: 'david.kim@company.com',
+        role: 'QA Manager',
+        projectId: mobileProject.id,
+      },
+    ],
+    skipDuplicates: true,
+  });
+
+  // Create project goals
+  await prisma.projectGoal.createMany({
+    data: [
+      {
+        title: 'Improve Page Load Speed',
+        description: 'Reduce average page load time to under 2 seconds',
+        targetValue: { loadTime: '2s', metric: 'average_page_load' },
+        currentValue: { loadTime: '4.2s', metric: 'average_page_load' },
+        dueDate: new Date('2024-04-30'),
+        isAchieved: false,
+        projectId: ecommerceProject.id,
+      },
+      {
+        title: 'Mobile App Store Rating',
+        description: 'Achieve 4.5+ rating on both iOS and Android app stores',
+        targetValue: { rating: 4.5, stores: ['iOS', 'Android'] },
+        currentValue: { rating: 0, stores: [] },
+        dueDate: new Date('2024-09-01'),
+        isAchieved: false,
+        projectId: mobileProject.id,
+      },
+      {
+        title: 'User Conversion Rate',
+        description: 'Increase conversion rate from 2.1% to 3.5%',
+        targetValue: { conversionRate: 3.5, unit: 'percentage' },
+        currentValue: { conversionRate: 2.1, unit: 'percentage' },
+        dueDate: new Date('2024-06-15'),
+        isAchieved: false,
+        projectId: ecommerceProject.id,
+      },
+    ],
+    skipDuplicates: true,
+  });
+
+  // Create analysis records
+  await prisma.analysisRecord.createMany({
+    data: [
+      {
+        analysisType: 'gap_analysis',
+        results: {
+          totalGaps: 3,
+          criticalGaps: 1,
+          highGaps: 1,
+          mediumGaps: 1,
+          categories: ['skill', 'technology', 'resource'],
+        },
+        overallScore: 6.5,
+        executionTime: 1250,
+        projectId: ecommerceProject.id,
+      },
+      {
+        analysisType: 'prediction_analysis',
+        results: {
+          totalPredictions: 2,
+          highRiskPredictions: 1,
+          mediumRiskPredictions: 1,
+          averageProbability: 0.7,
+        },
+        overallScore: 7.2,
+        executionTime: 890,
+        projectId: mobileProject.id,
+      },
+    ],
+    skipDuplicates: true,
+  });
+
   console.log('✅ Database seeding completed successfully!');
   console.log('📊 Created:');
   console.log('  - 1 tenant organization');
   console.log('  - 3 users (admin, manager, user)');
-  console.log('  - 2 projects');
-  console.log('  - 3 gaps with root causes');
+  console.log('  - 2 projects with stakeholders and goals');
+  console.log('  - 3 gaps with 5 root causes');
   console.log('  - 2 predictions');
-  console.log('  - 2 integrations');
+  console.log('  - 2 integrations (Jira, Asana)');
+  console.log('  - 5 project stakeholders');
+  console.log('  - 3 project goals');
+  console.log('  - 2 analysis records');
   console.log('');
   console.log('🔐 Default login credentials:');
   console.log('  Admin: admin@stratibreak.com / admin123');
