@@ -2,189 +2,189 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-    id        String   @id @default(cuid())
-    email     String   @unique
-    username  String   @unique
-    password  String
-    firstName String?
-    lastName  String?
-    role      UserRole @default(USER)
-    isActive  Boolean  @default(true)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  firstName String?
+  lastName  String?
+  role      UserRole @default(USER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    // Relations
-    projects     Project[]
-    gaps         Gap[]
-    predictions  Prediction[]
-    integrations Integration[]
+  // Relations
+  projects     Project[]
+  gaps         Gap[]
+  predictions  Prediction[]
+  integrations Integration[]
 
-    @@map("users")
+  @@map("users")
 }
 
 model Project {
-    id          String        @id @default(cuid())
-    name        String
-    description String?
-    status      ProjectStatus @default(ACTIVE)
-    startDate   DateTime?
-    endDate     DateTime?
-    createdAt   DateTime      @default(now())
-    updatedAt   DateTime      @updatedAt
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  status      ProjectStatus @default(ACTIVE)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
-    // Relations
-    userId       String
-    user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-    gaps         Gap[]
-    predictions  Prediction[]
-    integrations Integration[]
+  // Relations
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gaps         Gap[]
+  predictions  Prediction[]
+  integrations Integration[]
 
-    @@map("projects")
+  @@map("projects")
 }
 
 model Gap {
-    id          String    @id @default(cuid())
-    title       String
-    description String
-    type        GapType
-    severity    Severity
-    status      GapStatus @default(OPEN)
-    impact      String?
-    rootCause   String?
-    createdAt   DateTime  @default(now())
-    updatedAt   DateTime  @updatedAt
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  type        GapType
+  severity    Severity
+  status      GapStatus @default(OPEN)
+  impact      String?
+  rootCause   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-    // Relations
-    projectId String
-    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    userId    String
-    user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Relations
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@map("gaps")
+  @@map("gaps")
 }
 
 model Prediction {
-    id          String           @id @default(cuid())
-    title       String
-    description String
-    type        PredictionType
-    probability Float            @db.DoublePrecision
-    impact      Severity
-    status      PredictionStatus @default(PENDING)
-    predictedAt DateTime
-    actualAt    DateTime?
-    accuracy    Float?           @db.DoublePrecision
-    createdAt   DateTime         @default(now())
-    updatedAt   DateTime         @updatedAt
+  id          String           @id @default(cuid())
+  title       String
+  description String
+  type        PredictionType
+  probability Float            @db.DoublePrecision
+  impact      Severity
+  status      PredictionStatus @default(PENDING)
+  predictedAt DateTime
+  actualAt    DateTime?
+  accuracy    Float?           @db.DoublePrecision
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
-    // Relations
-    projectId String
-    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    userId    String
-    user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Relations
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@map("predictions")
+  @@map("predictions")
 }
 
 model Integration {
-    id           String            @id @default(cuid())
-    name         String
-    type         IntegrationType
-    status       IntegrationStatus @default(INACTIVE)
-    config       Json
-    lastSyncAt   DateTime?
-    syncInterval Int? // in minutes
-    isActive     Boolean           @default(true)
-    createdAt    DateTime          @default(now())
-    updatedAt    DateTime          @updatedAt
+  id           String            @id @default(cuid())
+  name         String
+  type         IntegrationType
+  status       IntegrationStatus @default(INACTIVE)
+  config       Json
+  lastSyncAt   DateTime?
+  syncInterval Int? // in minutes
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 
-    // Relations
-    projectId String
-    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    userId    String
-    user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Relations
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@map("integrations")
+  @@map("integrations")
 }
 
 // Enums
 enum UserRole {
-    ADMIN
-    MANAGER
-    USER
+  ADMIN
+  MANAGER
+  USER
 }
 
 enum ProjectStatus {
-    ACTIVE
-    INACTIVE
-    COMPLETED
-    ARCHIVED
+  ACTIVE
+  INACTIVE
+  COMPLETED
+  ARCHIVED
 }
 
 enum GapType {
-    RESOURCE
-    SKILL
-    PROCESS
-    TECHNOLOGY
-    COMMUNICATION
-    TIMELINE
-    QUALITY
-    BUDGET
+  RESOURCE
+  SKILL
+  PROCESS
+  TECHNOLOGY
+  COMMUNICATION
+  TIMELINE
+  QUALITY
+  BUDGET
 }
 
 enum Severity {
-    LOW
-    MEDIUM
-    HIGH
-    CRITICAL
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }
 
 enum GapStatus {
-    OPEN
-    IN_PROGRESS
-    RESOLVED
-    CLOSED
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
 }
 
 enum PredictionType {
-    DELAY_RISK
-    RESOURCE_SHORTAGE
-    QUALITY_ISSUE
-    BUDGET_OVERRUN
-    SCOPE_CREEP
-    TEAM_BURNOUT
+  DELAY_RISK
+  RESOURCE_SHORTAGE
+  QUALITY_ISSUE
+  BUDGET_OVERRUN
+  SCOPE_CREEP
+  TEAM_BURNOUT
 }
 
 enum PredictionStatus {
-    PENDING
-    CONFIRMED
-    FALSE_POSITIVE
-    RESOLVED
+  PENDING
+  CONFIRMED
+  FALSE_POSITIVE
+  RESOLVED
 }
 
 enum IntegrationType {
-    JIRA
-    ASANA
-    TRELLO
-    MONDAY
-    BITRIX24
-    SLACK
-    GITHUB
-    GITLAB
+  JIRA
+  ASANA
+  TRELLO
+  MONDAY
+  BITRIX24
+  SLACK
+  GITHUB
+  GITLAB
 }
 
 enum IntegrationStatus {
-    ACTIVE
-    INACTIVE
-    ERROR
-    SYNCING
+  ACTIVE
+  INACTIVE
+  ERROR
+  SYNCING
 }
