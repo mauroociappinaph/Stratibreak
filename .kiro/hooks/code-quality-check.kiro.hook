@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Auto Code Quality Check",
+  "description": "Automatically runs linting, type checking, and tests when TypeScript, JavaScript, or Python files are saved to maintain code quality across backend, frontend, and ML services",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.ts",
+      "**/*.js",
+      "**/*.py"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A code file has been modified. Please run the appropriate code quality checks:\n\n1. For TypeScript/JavaScript files (.ts, .js):\n   - Run linting with `pnpm lint`\n   - Run type checking with `pnpm type-check`\n   - Run relevant tests with `pnpm test`\n\n2. For Python files (.py):\n   - Run Python linting (flake8, black, mypy)\n   - Run Python tests (pytest)\n\n3. Check for any code quality issues and provide feedback on:\n   - Linting errors or warnings\n   - Type checking issues\n   - Test failures\n   - Code formatting problems\n\nEnsure the code maintains the high quality standards required for the backend TypeScript services, Next.js frontend, and Python ML services."
+  }
+}

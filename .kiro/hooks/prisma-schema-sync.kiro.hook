@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Prisma Schema Auto-Sync",
+  "description": "Automatically generates new TypeScript types and updates DTOs or entities when Prisma schema files are modified, ensuring type safety and consistency across the codebase",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "backend/prisma/schema.prisma",
+      "backend/prisma/migrations/*.sql"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The Prisma schema has been modified. Please:\n\n1. Generate the updated Prisma client types by running `npx prisma generate`\n2. Review the schema changes and identify which TypeScript types, DTOs, and entities need to be updated\n3. Update the corresponding files in:\n   - `backend/src/types/database/` - Database entity types\n   - Module-specific DTOs in `backend/src/modules/*/dto/`\n   - Entity files in `backend/src/modules/*/entities/`\n4. Ensure all type definitions remain consistent with the new schema\n5. Update any barrel exports in index.ts files if new types were added\n6. Run type checking with `pnpm type-check` to verify everything compiles correctly\n\nFocus on maintaining type safety and ensuring all database-related code remains coherent with the schema changes."
+  }
+}

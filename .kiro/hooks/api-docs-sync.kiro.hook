@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "API Documentation Sync",
+  "description": "Automatically updates technical documentation (OpenAPI specs) when API controllers or services are modified, ensuring documentation always reflects the latest code changes",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "backend/src/modules/*/controllers/*.controller.ts",
+      "backend/src/modules/*/services/*.service.ts",
+      "ml-services/src/api/*.py"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A controller or service file has been modified. Please analyze the changes and update the corresponding OpenAPI documentation to reflect any new endpoints, modified request/response schemas, or service interface changes. Ensure the documentation includes proper descriptions, parameter definitions, response codes, and examples. Focus on maintaining consistency with the existing documentation style and include any new DTOs or types that may have been added."
+  }
+}

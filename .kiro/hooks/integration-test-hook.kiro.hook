@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Integration Test Runner",
+  "description": "Automatically runs integration tests when files related to external services like Jira or Asana are modified to ensure integrations continue working correctly",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "backend/src/modules/integrations/**/*.ts",
+      "backend/src/modules/integrations/**/*.js",
+      "ml-services/src/api/**/*.py",
+      "shared/types/**/*.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Files related to external service integrations (Jira, Asana, etc.) have been modified. Please run the integration test suite to verify that all external service connections and API integrations are still functioning correctly. Focus on testing authentication, data synchronization, webhook handling, and API response parsing for the affected services. If any tests fail, provide specific guidance on what needs to be fixed to restore integration functionality."
+  }
+}

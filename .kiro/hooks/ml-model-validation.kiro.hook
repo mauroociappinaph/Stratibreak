@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "ML Model Validation",
+  "description": "Automatically runs specific tests and updates performance metrics whenever ML model files are modified in the ml-services directory to ensure models continue delivering good results for gap analysis",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "ml-services/src/models/**/*"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A model file has been modified in ml-services/. Please:\n\n1. Run the specific validation tests for the modified model to ensure it still functions correctly\n2. Update the performance metrics for this model \n3. Verify that the model continues to deliver accurate results for gap analysis\n4. If any issues are detected, provide recommendations for fixes\n5. Update any relevant documentation or model versioning\n\nFocus on maintaining the quality and reliability of our ML models that power the gap analysis functionality."
+  }
+}

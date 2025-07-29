@@ -1,0 +1,30 @@
+{
+  "enabled": true,
+  "name": "Configuration Validation",
+  "description": "Automatically validates configuration files and environment variables when modified to ensure proper syntax and completeness, preventing deployment errors.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.env",
+      "*.env.*",
+      ".env*",
+      "config/*.json",
+      "config/*.yaml",
+      "config/*.yml",
+      "*.config.js",
+      "*.config.ts",
+      "package.json",
+      "docker-compose.yml",
+      "docker-compose.*.yml",
+      "prisma/schema.prisma",
+      "backend/src/config/*",
+      "frontend/next.config.js",
+      "frontend/tailwind.config.js"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A configuration or environment file has been modified. Please validate the following:\n\n1. **Syntax Validation**: Check that all configuration files have valid syntax (JSON, YAML, etc.)\n2. **Environment Variables**: Verify that all required environment variables are present and properly formatted\n3. **Configuration Completeness**: Ensure no critical configuration keys are missing\n4. **Type Safety**: Validate that configuration values match expected types\n5. **Security Check**: Identify any potential security issues like exposed secrets or weak configurations\n6. **Dependency Validation**: Check that configuration changes are compatible with package.json dependencies\n7. **Database Schema**: If Prisma schema was modified, validate the schema syntax and relationships\n\nProvide a clear report of any issues found and suggest fixes. If everything is valid, confirm that the configuration is ready for deployment."
+  }
+}

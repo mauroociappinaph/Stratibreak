@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Dependency Security Scanner",
+  "description": "Automatically reviews new dependencies for potential vulnerabilities whenever package.json or requirements.txt files are changed to maintain high security standards across the SaaS platform",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "package.json",
+      "requirements.txt"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A dependency file has been modified. Please analyze the changes in the dependency files (package.json or requirements.txt) and scan for potential security vulnerabilities in any newly added or updated dependencies. Provide a security assessment report that includes: 1) List of new/updated dependencies, 2) Known vulnerabilities for each dependency, 3) Risk assessment (high/medium/low), 4) Recommended actions or alternative packages if vulnerabilities are found, 5) Overall security impact on the SaaS platform. Focus on maintaining high security standards and provide actionable recommendations."
+  }
+}
