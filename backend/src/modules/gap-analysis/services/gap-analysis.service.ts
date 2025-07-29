@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { CreateGapAnalysisDto, UpdateGapAnalysisDto } from '../dto';
 import { GapAnalysisEntity } from '../entities';

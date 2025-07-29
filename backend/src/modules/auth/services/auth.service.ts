@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { LoginDto, RegisterDto } from '../dto';
 import { UserEntity } from '../entities';
