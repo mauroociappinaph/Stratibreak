@@ -19,7 +19,7 @@ The project has a basic NestJS backend structure with module directories created
   - _Requirements: Project foundation_
 
 - [ ] 0.2 Setup common utilities structure
-  - [ ] 0.2.a Create initial files in common directory (decorators, filters, guards, helpers, interceptors, pipes)
+  - [x] 0.2.a Create initial files in common directory (decorators, filters, guards, helpers, interceptors, pipes)
   - [ ] 0.2.b Create initial files in types directory (api, database, services)
   - [ ] 0.2.c Setup configuration directory structure
   - _Requirements: Project foundation_

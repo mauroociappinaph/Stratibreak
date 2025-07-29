@@ -1,2 +1,2 @@
 // Common Pipes
-// TODO: Add pipes when created
+export * from './validation.pipe';

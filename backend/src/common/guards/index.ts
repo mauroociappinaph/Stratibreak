@@ -1,2 +1,3 @@
 // Common Guards
-// TODO: Add guards when created
+export * from './jwt-auth.guard';
+export * from './roles.guard';
