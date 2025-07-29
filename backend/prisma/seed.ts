@@ -17,6 +17,18 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting database seeding...');
 
+  // Create default tenant
+  const tenant = await prisma.tenant.upsert({
+    where: { organizationName: 'Stratibreak Demo Organization' },
+    update: {},
+    create: {
+      organizationName: 'Stratibreak Demo Organization',
+      dataEncryptionKey: 'demo-encryption-key-change-in-production',
+      retentionPolicyDays: 365,
+      isActive: true,
+    },
+  });
+
   // Create admin user
   const adminPassword = await bcrypt.hash('admin123', 10);
   await prisma.user.upsert({
@@ -30,6 +42,7 @@ async function main() {
       lastName: 'Administrator',
       role: UserRole.ADMIN,
       isActive: true,
+      tenantId: tenant.id,
     },
   });
 
@@ -44,8 +57,9 @@ async function main() {
       password: managerPassword,
       firstName: 'Project',
       lastName: 'Manager',
-      role: UserRole.MANAGER,
+      role: UserRole.PROJECT_MANAGER,
       isActive: true,
+      tenantId: tenant.id,
     },
   });
 
@@ -60,13 +74,14 @@ async function main() {
       password: userPassword,
       firstName: 'Team',
       lastName: 'Member',
-      role: UserRole.USER,
+      role: UserRole.STAKEHOLDER,
       isActive: true,
+      tenantId: tenant.id,
     },
   });
 
   // Create sample projects
-  const project1 = await prisma.project.upsert({
+  const ecommerceProject = await prisma.project.upsert({
     where: { id: 'sample-project-1' },
     update: {},
     create: {
@@ -78,10 +93,11 @@ async function main() {
       startDate: new Date('2024-01-15'),
       endDate: new Date('2024-06-30'),
       userId: manager.id,
+      tenantId: tenant.id,
     },
   });
 
-  const project2 = await prisma.project.upsert({
+  const mobileProject = await prisma.project.upsert({
     where: { id: 'sample-project-2' },
     update: {},
     create: {
@@ -93,46 +109,96 @@ async function main() {
       startDate: new Date('2024-02-01'),
       endDate: new Date('2024-08-15'),
       userId: manager.id,
+      tenantId: tenant.id,
     },
   });
 
-  // Create sample gaps
-  await prisma.gap.createMany({
+  // Create sample gaps with root causes
+  const gap1 = await prisma.gap.create({
+    data: {
+      title: 'Frontend Development Skills Gap',
+      description:
+        'Team lacks experience with React 18 and modern frontend frameworks',
+      type: GapType.SKILL,
+      severity: Severity.HIGH,
+      status: GapStatus.OPEN,
+      impact: 'May delay frontend development by 2-3 weeks',
+      currentValue: {
+        skillLevel: 'intermediate',
+        frameworks: ['React 16', 'jQuery'],
+      },
+      targetValue: {
+        skillLevel: 'advanced',
+        frameworks: ['React 18', 'Next.js', 'TypeScript'],
+      },
+      projectId: ecommerceProject.id,
+      userId: manager.id,
+    },
+  });
+
+  const gap2 = await prisma.gap.create({
+    data: {
+      title: 'Database Performance Issues',
+      description:
+        'Current database queries are not optimized for the expected load',
+      type: GapType.TECHNOLOGY,
+      severity: Severity.MEDIUM,
+      status: GapStatus.IN_PROGRESS,
+      impact: 'Performance degradation under high load',
+      currentValue: { avgResponseTime: '2.5s', queryOptimization: 'basic' },
+      targetValue: { avgResponseTime: '0.5s', queryOptimization: 'advanced' },
+      projectId: ecommerceProject.id,
+      userId: user.id,
+    },
+  });
+
+  const gap3 = await prisma.gap.create({
+    data: {
+      title: 'Mobile Testing Resources',
+      description: 'Insufficient mobile testing devices and automation tools',
+      type: GapType.RESOURCE,
+      severity: Severity.MEDIUM,
+      status: GapStatus.OPEN,
+      impact: 'Limited testing coverage for mobile applications',
+      currentValue: { devices: 3, automationCoverage: '20%' },
+      targetValue: { devices: 10, automationCoverage: '80%' },
+      projectId: mobileProject.id,
+      userId: manager.id,
+    },
+  });
+
+  // Create root causes for gaps
+  await prisma.rootCause.createMany({
     data: [
       {
-        title: 'Frontend Development Skills Gap',
-        description:
-          'Team lacks experience with React 18 and modern frontend frameworks',
-        type: GapType.SKILL,
-        severity: Severity.HIGH,
-        status: GapStatus.OPEN,
-        impact: 'May delay frontend development by 2-3 weeks',
-        rootCause: 'Team primarily experienced with older technologies',
-        projectId: project1.id,
-        userId: manager.id,
+        description: 'Team primarily experienced with older technologies',
+        category: 'skill',
+        confidence: 0.85,
+        gapId: gap1.id,
       },
       {
-        title: 'Database Performance Issues',
-        description:
-          'Current database queries are not optimized for the expected load',
-        type: GapType.TECHNOLOGY,
-        severity: Severity.MEDIUM,
-        status: GapStatus.IN_PROGRESS,
-        impact: 'Performance degradation under high load',
-        rootCause: 'Legacy database schema and unoptimized queries',
-        projectId: project1.id,
-        userId: user.id,
+        description: 'Limited training budget for modern frameworks',
+        category: 'resource',
+        confidence: 0.7,
+        gapId: gap1.id,
       },
       {
-        title: 'Mobile Testing Resources',
-        description: 'Insufficient mobile testing devices and automation tools',
-        type: GapType.RESOURCE,
-        severity: Severity.MEDIUM,
-        status: GapStatus.OPEN,
-        impact: 'Limited testing coverage for mobile applications',
-        rootCause: 'Budget constraints and lack of testing infrastructure',
-        projectId: project2.id,
-        userId: manager.id,
+        description: 'Legacy database schema design',
+        category: 'technology',
+        confidence: 0.9,
+        gapId: gap2.id,
+      },
+      {
+        description: 'Lack of database optimization expertise',
+        category: 'skill',
+        confidence: 0.75,
+        gapId: gap2.id,
+      },
+      {
+        description: 'Budget constraints for testing infrastructure',
+        category: 'resource',
+        confidence: 0.95,
+        gapId: gap3.id,
       },
     ],
     skipDuplicates: true,
@@ -149,7 +215,7 @@ async function main() {
         impact: Severity.HIGH,
         status: PredictionStatus.PENDING,
         predictedAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-        projectId: project1.id,
+        projectId: ecommerceProject.id,
         userId: manager.id,
       },
       {
@@ -160,7 +226,7 @@ async function main() {
         impact: Severity.MEDIUM,
         status: PredictionStatus.PENDING,
         predictedAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
-        projectId: project2.id,
+        projectId: mobileProject.id,
         userId: manager.id,
       },
     ],
@@ -179,9 +245,13 @@ async function main() {
           projectKey: 'ECOM',
           boardId: '123',
         },
+        credentials: {
+          apiToken: 'encrypted-jira-token',
+          email: 'integration@company.com',
+        },
         syncInterval: 30, // 30 minutes
         isActive: false,
-        projectId: project1.id,
+        projectId: ecommerceProject.id,
         userId: manager.id,
       },
       {
@@ -192,9 +262,12 @@ async function main() {
           projectId: '1234567890',
           teamId: '0987654321',
         },
+        credentials: {
+          accessToken: 'encrypted-asana-token',
+        },
         syncInterval: 60, // 60 minutes
         isActive: false,
-        projectId: project2.id,
+        projectId: mobileProject.id,
         userId: manager.id,
       },
     ],
@@ -203,9 +276,10 @@ async function main() {
 
   console.log('✅ Database seeding completed successfully!');
   console.log('📊 Created:');
+  console.log('  - 1 tenant organization');
   console.log('  - 3 users (admin, manager, user)');
   console.log('  - 2 projects');
-  console.log('  - 3 gaps');
+  console.log('  - 3 gaps with root causes');
   console.log('  - 2 predictions');
   console.log('  - 2 integrations');
   console.log('');
@@ -213,6 +287,8 @@ async function main() {
   console.log('  Admin: admin@stratibreak.com / admin123');
   console.log('  Manager: manager@stratibreak.com / manager123');
   console.log('  User: user@stratibreak.com / user123');
+  console.log('');
+  console.log('🏢 Organization: Stratibreak Demo Organization');
 }
 
 main()
