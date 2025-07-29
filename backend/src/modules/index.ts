@@ -1,3 +1,6 @@
 // Barrel exports for business logic modules
-// Modules will be exported as they are implemented
-export {};
+export * from './auth';
+export * from './gap-analysis';
+export * from './integrations';
+export * from './notifications';
+export * from './predictions';
