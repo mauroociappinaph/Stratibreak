@@ -121,4 +121,8 @@ docker-compose.prod.yml
 .env.production
 
 
-.kiro
+# Kiro IDE - exclude user-specific settings but keep project configs
+.kiro/settings/user/
+.kiro/cache/
+.kiro/logs/
+.kiro/temp/

@@ -103,6 +103,26 @@ pnpm deploy:staging
 pnpm deploy:prod
 ```
 
+## Programming Paradigms
+
+### Functional Programming First
+
+- **Prefer functional over OOP**: Use pure functions, immutability, and composition
+- **Immutable Data**: Use readonly types and immutable data structures
+- **Pure Functions**: Functions should be predictable with no side effects
+- **Function Composition**: Build complex logic by composing simple functions
+- **Higher-Order Functions**: Leverage map, filter, reduce, and custom HOFs
+- **Avoid Classes**: Use functions and modules instead of classes when possible
+- **State Management**: Prefer functional state updates over mutable state
+
+### TypeScript Functional Patterns
+
+- Use `const` assertions and `readonly` modifiers
+- Leverage utility types like `Partial`, `Pick`, `Omit`
+- Prefer function declarations and arrow functions over class methods
+- Use discriminated unions instead of inheritance
+- Implement algebraic data types with union types
+
 ## Architecture Principles
 
 ### Code Organization
