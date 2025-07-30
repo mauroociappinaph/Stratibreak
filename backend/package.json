@@ -38,7 +38,8 @@
     "db:status": "prisma migrate status",
     "db:deploy": "prisma migrate deploy && pnpm db:seed",
     "code-quality": "pnpm lint && pnpm type-check && pnpm unused && pnpm circular",
-    "clean-code": "pnpm unused && pnpm lint:fix && pnpm format"
+    "clean-code": "pnpm unused && pnpm lint:fix && pnpm format",
+    "generate:docs": "GENERATE_SWAGGER_JSON=true nest start"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.0",
