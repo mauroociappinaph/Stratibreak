@@ -189,7 +189,7 @@ Permanently deletes a gap analysis record.
 
 **POST** `/gap-analysis/{projectId}/analyze`
 
-Performs comprehensive AI-powered gap analysis on a project.
+Performs comprehensive AI-powered gap analysis on a project using the enhanced GapFactoryService.
 
 #### Parameters
 
@@ -199,24 +199,66 @@ Performs comprehensive AI-powered gap analysis on a project.
 
 ```json
 {
-  "id": "gap_auto_987654321",
   "projectId": "proj_123456789",
-  "title": "Resource Over-utilization",
-  "description": "Resources are over-utilized at 95.0% affecting team sustainability",
-  "type": "resource",
-  "severity": "high",
-  "createdAt": "2024-01-15T10:30:00Z",
-  "updatedAt": "2024-01-15T10:30:00Z"
+  "analysisTimestamp": "2024-01-15T10:30:00Z",
+  "identifiedGaps": [
+    {
+      "projectId": "proj_123456789",
+      "title": "Resource Over-utilization",
+      "description": "Resources are over-utilized at 95.0% affecting team sustainability",
+      "type": "RESOURCE",
+      "category": "OPERATIONAL",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "currentValue": 0.95,
+      "targetValue": 0.8,
+      "impact": "Team burnout risk and decreased productivity",
+      "confidence": 0.85,
+      "userId": "system"
+    },
+    {
+      "projectId": "proj_123456789",
+      "title": "Timeline Delay Detected",
+      "description": "Project is delayed by 10 days",
+      "type": "TIMELINE",
+      "category": "OPERATIONAL",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "currentValue": 10,
+      "targetValue": 0,
+      "impact": "Delayed project delivery affecting stakeholder expectations",
+      "confidence": 0.9,
+      "userId": "system"
+    }
+  ],
+  "overallConfidence": 0.87,
+  "executionTimeMs": 850,
+  "summary": {
+    "totalGaps": 2,
+    "criticalGaps": 0,
+    "highSeverityGaps": 2,
+    "averageConfidence": 0.875
+  }
 }
 ```
 
-#### Analysis Features
+#### Enhanced Analysis Features
 
+- **Simplified Gap Structure**: Streamlined gap data model for better performance
 - **Resource Analysis**: Evaluates team utilization, budget burn rate, and capacity
 - **Timeline Analysis**: Identifies delays and milestone deviations
 - **Quality Analysis**: Assesses defect rates and quality metrics
-- **Process Analysis**: Evaluates workflow efficiency and bottlenecks
-- **Communication Analysis**: Identifies collaboration gaps
+- **Automated Severity Calculation**: Uses advanced algorithms for severity assessment
+- **Confidence Scoring**: Provides confidence levels for each identified gap
+
+#### Gap Factory Service Enhancements
+
+The updated GapFactoryService provides:
+
+- **Simplified Data Model**: Reduced complexity while maintaining essential information
+- **Type Safety**: Full TypeScript support with proper enum usage
+- **Performance Optimization**: Faster gap creation and analysis
+- **Consistent Structure**: Standardized gap data across all analysis types
 
 #### Status Codes
 
@@ -376,6 +418,54 @@ All endpoints return consistent error responses:
 - **System Uptime**: > 99.9% availability
 
 ## Integration Notes
+
+### Gap Factory Service Refactoring
+
+The GapFactoryService has been significantly refactored to improve performance and maintainability:
+
+#### Key Changes
+
+1. **Simplified Data Model**: Replaced complex nested structures with a streamlined `GapData` interface
+2. **Type Safety**: Fixed import issues and proper enum usage from `types/database/gap.types`
+3. **Reduced Complexity**: Eliminated redundant nested objects while preserving essential gap information
+4. **Performance Optimization**: Faster gap creation and reduced memory footprint
+
+#### New GapData Interface
+
+```typescript
+interface GapData {
+  id?: string;
+  projectId: string;
+  title: string;
+  description: string;
+  type: GapType;
+  category: GapCategory;
+  severity: SeverityLevel;
+  status: GapStatus;
+  currentValue?: number | string;
+  targetValue?: number | string;
+  impact?: string;
+  confidence?: number;
+  userId: string;
+  identifiedAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+```
+
+#### Factory Methods
+
+The service provides three main factory methods:
+
+- `createTimelineGap(current: ProjectState)`: Detects timeline delays and deviations
+- `createResourceGap(current: ProjectState)`: Identifies resource over-utilization issues
+- `createQualityGap(current: ProjectState)`: Detects quality metric violations
+
+#### Severity Calculation Logic
+
+- **Timeline Gaps**: HIGH severity for delays > 7 days, MEDIUM otherwise
+- **Resource Gaps**: CRITICAL for utilization > 95%, HIGH otherwise
+- **Quality Gaps**: CRITICAL for defect rate > 10%, HIGH otherwise
 
 ### Resource State Enhancement
 
