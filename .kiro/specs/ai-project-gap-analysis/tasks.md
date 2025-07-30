@@ -121,11 +121,17 @@ The project has a basic NestJS backend structure with module directories created
   - [x] 4.2.1.j Fix TypeScript and ESLint errors in helper classes ✅ Done
   - [x] 4.2.1.k Refactor SeverityCalculatorService to reduce file size and improve maintainability ✅ Done
   - [x] 4.2.1.l Create SeverityCalculationHelper for ML and risk calculation methods ✅ Done
+  - [x] 4.2.1.m Refactor GapFactoryService to use simplified GapData interface ✅ Done
+  - [x] 4.2.1.n Fix import issues and type safety in GapFactoryService and ProjectStateAnalyzerService ✅ Done
+  - [x] 4.2.1.o Split gap-analysis.entity.ts into separate entity files for better maintainability ✅ Done
+  - [x] 4.2.1.p Create new DTOs for simplified gap factory service output ✅ Done
+  - [x] 4.2.1.q Update OpenAPI documentation to reflect service changes ✅ Done
+  - [x] 4.2.1.r Create comprehensive API changes documentation ✅ Done
   - _Requirements: Clean Architecture, Single Responsibility Principle_
 
 - [ ] 4.3 Implement Gap Analysis REST API
-  - [ ] 4.3.a Create GapAnalysisController with CRUD endpoints
-  - [ ] 4.3.b Implement project analysis endpoint
+  - [x] 4.3.a Create GapAnalysisController with CRUD endpoints
+  - [x] 4.3.b Implement project analysis endpoint
   - [ ] 4.3.c Add gap categorization and severity endpoints
   - _Requirements: 2.1, 2.2, 2.5_
 

@@ -1,249 +1,122 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsArray,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Max,
-  Min,
-} from 'class-validator';
-import { DetailedGapDto } from './gap-analysis-result.dto';
+import { DetailedGapDto } from './detailed-gap.dto';
 
-export class GapCategoryAnalysisDto {
+export class GapCategoryMetricsDto {
   @ApiProperty({
-    description: 'Category name',
-    example: 'resource',
-  })
-  @IsString()
-  category: string;
-
-  @ApiProperty({
-    description: 'Gaps in this category',
-    type: [DetailedGapDto],
-  })
-  @IsArray()
-  gaps: DetailedGapDto[];
-
-  @ApiProperty({
-    description: 'Total count of gaps in this category',
+    description: 'Total number of gaps in this category',
     example: 5,
-    minimum: 0,
   })
-  @IsNumber()
-  @Min(0)
   totalCount: number;
 
   @ApiProperty({
-    description: 'Distribution by severity level',
+    description: 'Number of gaps by severity level',
     example: { low: 1, medium: 2, high: 1, critical: 1 },
   })
-  severityDistribution: Record<string, number>;
+  bySeverity: Record<string, number>;
 
   @ApiProperty({
-    description: 'Average confidence level for this category',
+    description: 'Average confidence level for gaps in this category',
     example: 0.82,
     minimum: 0,
     maximum: 1,
   })
-  @IsNumber()
-  @Min(0)
-  @Max(1)
   averageConfidence: number;
 
   @ApiProperty({
-    description: 'Most common root causes in this category',
-    example: ['process', 'resource_allocation'],
-    type: [String],
+    description: 'Most common root cause category',
+    example: 'process',
   })
-  @IsArray()
-  @IsString({ each: true })
-  commonRootCauses: string[];
+  primaryRootCause: string;
 
   @ApiProperty({
-    description: 'Recommended priority level for addressing this category',
-    example: 'high',
-    enum: ['low', 'medium', 'high', 'urgent'],
-  })
-  @IsString()
-  recommendedPriority: string;
-
-  @ApiProperty({
-    description:
-      'Estimated effort to address all gaps in this category (hours)',
-    example: 120,
-    minimum: 0,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  estimatedEffort?: number;
-
-  @ApiProperty({
-    description: 'Potential impact of addressing this category (0-1)',
-    example: 0.85,
-    minimum: 0,
-    maximum: 1,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Max(1)
-  potentialImpact?: number;
-}
-
-export class GapTrendAnalysisDto {
-  @ApiProperty({
-    description: 'Category being analyzed',
-    example: 'resource',
-  })
-  @IsString()
-  category: string;
-
-  @ApiProperty({
-    description: 'Current period gap count',
-    example: 5,
-    minimum: 0,
-  })
-  @IsNumber()
-  @Min(0)
-  currentCount: number;
-
-  @ApiProperty({
-    description: 'Previous period gap count',
-    example: 3,
-    minimum: 0,
-  })
-  @IsNumber()
-  @Min(0)
-  previousCount: number;
-
-  @ApiProperty({
-    description: 'Trend direction',
+    description: 'Trend compared to previous analysis',
     example: 'increasing',
     enum: ['increasing', 'decreasing', 'stable', 'new'],
   })
-  @IsString()
-  trend: 'increasing' | 'decreasing' | 'stable' | 'new';
-
-  @ApiProperty({
-    description: 'Percentage change from previous period',
-    example: 66.7,
-  })
-  @IsNumber()
-  percentageChange: number;
-
-  @ApiProperty({
-    description: 'Trend analysis over time',
-    example: [
-      { period: '2024-01', count: 2 },
-      { period: '2024-02', count: 3 },
-      { period: '2024-03', count: 5 },
-    ],
-  })
-  @IsArray()
-  historicalData: Array<{
-    period: string;
-    count: number;
-    averageSeverity: number;
-  }>;
+  trend: string;
 }
 
-export class GapCategorizationRequestDto {
+export class CategorizedGapsDto {
   @ApiProperty({
-    description: 'Project ID to categorize gaps for',
-    example: 'proj_123456789',
+    description: 'Resource-related gaps',
+    type: [DetailedGapDto],
   })
-  @IsString()
-  projectId: string;
+  resource: DetailedGapDto[];
 
   @ApiProperty({
-    description: 'Include trend analysis',
-    example: true,
-    required: false,
-    default: false,
+    description: 'Process-related gaps',
+    type: [DetailedGapDto],
   })
-  @IsOptional()
-  includeTrends?: boolean = false;
+  process: DetailedGapDto[];
 
   @ApiProperty({
-    description: 'Include effort estimation',
-    example: true,
-    required: false,
-    default: false,
+    description: 'Communication-related gaps',
+    type: [DetailedGapDto],
   })
-  @IsOptional()
-  includeEffortEstimation?: boolean = false;
+  communication: DetailedGapDto[];
 
   @ApiProperty({
-    description: 'Include impact analysis',
-    example: true,
-    required: false,
-    default: false,
+    description: 'Technology-related gaps',
+    type: [DetailedGapDto],
   })
-  @IsOptional()
-  includeImpactAnalysis?: boolean = false;
+  technology: DetailedGapDto[];
 
   @ApiProperty({
-    description: 'Time period for trend analysis (in days)',
-    example: 30,
-    minimum: 1,
-    maximum: 365,
-    required: false,
-    default: 30,
+    description: 'Culture-related gaps',
+    type: [DetailedGapDto],
   })
-  @IsOptional()
-  @IsNumber()
-  @Min(1)
-  @Max(365)
-  trendPeriodDays?: number = 30;
-}
-
-export class GapCategorizationResponseDto {
-  @ApiProperty({
-    description: 'Project ID that was analyzed',
-    example: 'proj_123456789',
-  })
-  projectId: string;
+  culture: DetailedGapDto[];
 
   @ApiProperty({
-    description: 'Analysis timestamp',
-    example: '2024-01-15T10:30:00Z',
-    type: 'string',
-    format: 'date-time',
+    description: 'Timeline-related gaps',
+    type: [DetailedGapDto],
   })
-  analysisTimestamp: Date;
+  timeline: DetailedGapDto[];
 
   @ApiProperty({
-    description: 'Gap analysis by category',
-    type: [GapCategoryAnalysisDto],
+    description: 'Quality-related gaps',
+    type: [DetailedGapDto],
   })
-  categoryAnalysis: GapCategoryAnalysisDto[];
+  quality: DetailedGapDto[];
 
   @ApiProperty({
-    description: 'Trend analysis by category (if requested)',
-    type: [GapTrendAnalysisDto],
-    required: false,
+    description: 'Budget-related gaps',
+    type: [DetailedGapDto],
   })
-  @IsOptional()
-  trendAnalysis?: GapTrendAnalysisDto[];
+  budget: DetailedGapDto[];
 
   @ApiProperty({
-    description: 'Overall categorization summary',
+    description: 'Skill-related gaps',
+    type: [DetailedGapDto],
+  })
+  skill: DetailedGapDto[];
+
+  @ApiProperty({
+    description: 'Governance-related gaps',
+    type: [DetailedGapDto],
+  })
+  governance: DetailedGapDto[];
+
+  @ApiProperty({
+    description: 'Metrics for each gap category',
+    type: 'object',
+    additionalProperties: {
+      type: 'object',
+      $ref: '#/components/schemas/GapCategoryMetricsDto',
+    },
+  })
+  categoryMetrics: Record<string, GapCategoryMetricsDto>;
+
+  @ApiProperty({
+    description: 'Summary statistics across all categories',
     type: 'object',
   })
   summary: {
     totalGaps: number;
-    totalCategories: number;
+    criticalGaps: number;
+    highPriorityGaps: number;
+    averageConfidence: number;
     mostAffectedCategory: string;
     leastAffectedCategory: string;
-    overallTrend: string;
-    recommendedFocus: string[];
   };
-
-  @ApiProperty({
-    description: 'Execution time in milliseconds',
-    example: 1250,
-    minimum: 0,
-  })
-  executionTimeMs: number;
 }

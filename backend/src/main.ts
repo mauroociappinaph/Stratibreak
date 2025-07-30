@@ -2,7 +2,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { writeFileSync } from 'fs';
+
 import { AppModule } from './app.module';
 
 async function bootstrap(): Promise<void> {
