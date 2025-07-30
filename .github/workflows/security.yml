@@ -32,8 +32,20 @@ jobs:
       - name: Run security audit
         run: pnpm audit --audit-level moderate
 
-      - name: Check for outdated packages
-        run: pnpm outdated
+      - name: Create issue on audit failure
+        if: ${{ failure() }}
+        uses: actions-ecosystem/action-create-issue@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          title: 'Security Vulnerability Detected: PNPM Audit'
+          body: |
+            `pnpm audit` found a vulnerability with moderate or higher severity.
+
+            - **Workflow Run:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - **Commit:** ${{ github.sha }}
+
+            Please check the logs for details and address the vulnerability.
+          labels: security, bug, automated
 
   # CodeQL Analysis
   codeql:
@@ -59,6 +71,21 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
 
+      - name: Create issue on CodeQL failure
+        if: ${{ failure() }}
+        uses: actions-ecosystem/action-create-issue@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          title: 'Security Vulnerability Detected: CodeQL Analysis (${{ matrix.language }})'
+          body: |
+            CodeQL analysis for `${{ matrix.language }}` has detected a potential security vulnerability.
+
+            - **Workflow Run:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - **Commit:** ${{ github.sha }}
+
+            Please review the findings in the "Security" tab and take appropriate action.
+          labels: security, bug, automated
+
   # Snyk Security
   snyk:
     runs-on: ubuntu-latest
@@ -71,3 +98,18 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --severity-threshold=high
+
+      - name: Create issue on Snyk failure
+        if: ${{ failure() }}
+        uses: actions-ecosystem/action-create-issue@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          title: 'Security Vulnerability Detected: Snyk Scan'
+          body: |
+            Snyk scan has detected a high-severity vulnerability.
+
+            - **Workflow Run:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - **Commit:** ${{ github.sha }}
+
+            Please review the Snyk report and address the vulnerability.
+          labels: security, bug, automated

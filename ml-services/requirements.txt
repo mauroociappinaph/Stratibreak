@@ -1,0 +1,8 @@
+# Testing Dependencies
+pytest
+pytest-cov
+
+# Add other ML dependencies here, for example:
+# pandas
+# scikit-learn
+# tensorflow

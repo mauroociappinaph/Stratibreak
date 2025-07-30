@@ -134,7 +134,6 @@ jobs:
         run: |
           cd ml-services
           pip install -r requirements.txt
-          pip install pytest pytest-cov
 
       - name: Run ML tests
         run: |
@@ -179,3 +178,21 @@ jobs:
           docker build -t backend:latest ./backend
           docker build -t frontend:latest ./frontend
           docker build -t ml-services:latest ./ml-services
+
+      - name: Create issue on build failure
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
+        uses: actions-ecosystem/action-create-issue@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          title: 'URGENT: CI Build Failed on main branch 🚨'
+          body: |
+            The CI build for the `main` branch has failed.
+
+            - **Workflow Run:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - **Commit:** ${{ github.sha }}
+
+            Please investigate and fix the issue immediately to unblock the pipeline.
+          labels: |
+            bug
+            critical
+            automated
