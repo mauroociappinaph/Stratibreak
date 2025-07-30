@@ -96,10 +96,10 @@ The project has a basic NestJS backend structure with module directories created
   - Build REST API endpoints for gap analysis operations
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 4.1 Create Gap Analysis service layer
-  - [ ] 4.1.a Implement GapAnalysisService with core analysis logic
-  - [ ] 4.1.b Create methods for identifying discrepancies and categorizing gaps
-  - [ ] 4.1.c Implement gap severity calculation algorithms
+- [x] 4.1 Create Gap Analysis service layer
+  - [x] 4.1.a Implement GapAnalysisService with core analysis logic
+  - [x] 4.1.b Create methods for identifying discrepancies and categorizing gaps
+  - [x] 4.1.c Implement gap severity calculation algorithms
   - _Requirements: 2.1, 2.2, 2.3_
 
 - [ ] 4.2 Build Gap Analysis DTOs and entities
@@ -107,6 +107,16 @@ The project has a basic NestJS backend structure with module directories created
   - [ ] 4.2.b Implement Gap entity with proper validation
   - [ ] 4.2.c Define categorized gaps structure
   - _Requirements: 2.1, 2.2, 2.5_
+
+- [ ] 4.2.1 Complete GapAnalysisService refactoring to separate concerns (SRP)
+  - [x] 4.2.1.a Create GapRepository class for all database operations (CRUD) ✅ Already exists
+  - [x] 4.2.1.b Move create, findAll, findOne, update, remove methods from GapAnalysisService to GapRepository ✅ Already done
+  - [x] 4.2.1.c Inject GapRepository into GapAnalysisService for data access ✅ Already injected
+  - [ ] 4.2.1.d **PENDING**: Remove duplicate CRUD methods from GapAnalysisService (create, findAll, findOne, update, remove)
+  - [ ] 4.2.1.e **PENDING**: Update GapAnalysisController to use GapRepository directly for CRUD operations
+  - [ ] 4.2.1.f **PENDING**: Keep only business logic methods in GapAnalysisService (analyzeProject, identifyDiscrepancies, etc.)
+  - [ ] 4.2.1.g **PENDING**: Fix import path in GapRepository (should import DTOs from ../dto, not ./dto)
+  - _Requirements: Clean Architecture, Single Responsibility Principle_
 
 - [ ] 4.3 Implement Gap Analysis REST API
   - [ ] 4.3.a Create GapAnalysisController with CRUD endpoints
