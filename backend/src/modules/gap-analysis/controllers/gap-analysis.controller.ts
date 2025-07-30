@@ -13,8 +13,10 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import {
   AutomatedGapAnalysisResultDto,
+  CategorizedGapsDto,
   CreateGapAnalysisDto,
   GapAnalysisResultDto,
+  SeverityAnalysisDto,
   UpdateGapAnalysisDto,
 } from '../dto';
 import { GapAnalysisEntity } from '../entities';
@@ -130,5 +132,35 @@ export class GapAnalysisController {
       await this.projectDataService.fetchProjectData(projectId);
     const result = await this.gapAnalysisService.performAnalysis(projectData);
     return ResultMapperHelper.mapToDetailedResultDto(result);
+  }
+
+  @Get(':projectId/categorization')
+  @SwaggerDocs.getCategorization.operation
+  @SwaggerDocs.getCategorization.param
+  @SwaggerDocs.getCategorization.responses.success
+  @SwaggerDocs.getCategorization.responses.notFound
+  @SwaggerDocs.getCategorization.responses.serverError
+  async getCategorization(
+    @Param('projectId') projectId: string
+  ): Promise<CategorizedGapsDto> {
+    const projectData =
+      await this.projectDataService.fetchProjectData(projectId);
+    const result = await this.gapAnalysisService.performAnalysis(projectData);
+    return ResultMapperHelper.mapToCategorizedGapsDto(result);
+  }
+
+  @Get(':projectId/severity-analysis')
+  @SwaggerDocs.getSeverityAnalysis.operation
+  @SwaggerDocs.getSeverityAnalysis.param
+  @SwaggerDocs.getSeverityAnalysis.responses.success
+  @SwaggerDocs.getSeverityAnalysis.responses.notFound
+  @SwaggerDocs.getSeverityAnalysis.responses.serverError
+  async getSeverityAnalysis(
+    @Param('projectId') projectId: string
+  ): Promise<SeverityAnalysisDto> {
+    const projectData =
+      await this.projectDataService.fetchProjectData(projectId);
+    const result = await this.gapAnalysisService.performAnalysis(projectData);
+    return ResultMapperHelper.mapToSeverityAnalysisDto(result);
   }
 }
