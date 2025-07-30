@@ -35,8 +35,8 @@ export interface Gap {
   category: GapCategory;
   title: string;
   description: string;
-  currentValue: any;
-  targetValue: any;
+  currentValue: number | string;
+  targetValue: number | string;
   variance: number;
   severity: SeverityLevel;
   rootCauses: RootCause[];
@@ -90,7 +90,7 @@ export interface HistoricalMetric {
 
 export interface ExternalToolData {
   source: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   lastUpdated: Date;
 }
 

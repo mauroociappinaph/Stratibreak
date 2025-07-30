@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Prisma, Gap } from '@prisma/client';
-import { PrismaService } from '../../common/services';
-import { CreateGapAnalysisDto, UpdateGapAnalysisDto } from './dto';
+import { Gap, Prisma } from '@prisma/client';
+import { PrismaService } from '../../../common/services';
+import { CreateGapAnalysisDto, UpdateGapAnalysisDto } from '../dto';
 
 @Injectable()
 export class GapRepository {
@@ -14,8 +14,8 @@ export class GapRepository {
       const data: Prisma.GapCreateInput = {
         title: createGapDto.title,
         description: createGapDto.description || '',
-        type: createGapDto.type as any, // Will be fixed in a later step
-        severity: createGapDto.severity as any, // Will be fixed in a later step
+        type: createGapDto.type,
+        severity: createGapDto.severity,
         project: { connect: { id: createGapDto.projectId } },
         user: { connect: { id: 'system' } }, // TODO: Get from auth context
         status: 'OPEN',
@@ -64,8 +64,8 @@ export class GapRepository {
       const data: Prisma.GapUpdateInput = {};
       if (updateGapDto.title) data.title = updateGapDto.title;
       if (updateGapDto.description) data.description = updateGapDto.description;
-      if (updateGapDto.type) data.type = updateGapDto.type as any;
-      if (updateGapDto.severity) data.severity = updateGapDto.severity as any;
+      if (updateGapDto.type) data.type = updateGapDto.type;
+      if (updateGapDto.severity) data.severity = updateGapDto.severity;
 
       return this.prisma.gap.update({
         where: { id },

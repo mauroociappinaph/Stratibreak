@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -19,14 +20,27 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { CreateGapAnalysisDto, UpdateGapAnalysisDto } from '../dto';
+import {
+  CreateGapAnalysisDto,
+  GapAnalysisResultDto,
+  UpdateGapAnalysisDto,
+} from '../dto';
 import { GapAnalysisEntity } from '../entities';
+import { ResultMapperHelper } from '../helpers/result-mapper.helper';
+import { GapMapper } from '../mappers/gap.mapper';
+import { GapRepository } from '../repositories/gap.repository';
 import { GapAnalysisService } from '../services/gap-analysis.service';
+import { ProjectDataService } from '../services/project-data.service';
 
 @ApiTags('Gap Analysis')
 @Controller('gap-analysis')
 export class GapAnalysisController {
-  constructor(private readonly gapAnalysisService: GapAnalysisService) {}
+  constructor(
+    private readonly gapAnalysisService: GapAnalysisService,
+    private readonly gapRepository: GapRepository,
+    private readonly gapMapper: GapMapper,
+    private readonly projectDataService: ProjectDataService
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -103,7 +117,8 @@ export class GapAnalysisController {
   async create(
     @Body() createGapAnalysisDto: CreateGapAnalysisDto
   ): Promise<GapAnalysisEntity> {
-    return this.gapAnalysisService.create(createGapAnalysisDto);
+    const gap = await this.gapRepository.create(createGapAnalysisDto);
+    return this.gapMapper.prismaToEntity(gap);
   }
 
   @Get()
@@ -149,7 +164,8 @@ export class GapAnalysisController {
     },
   })
   async findAll(): Promise<GapAnalysisEntity[]> {
-    return this.gapAnalysisService.findAll();
+    const gaps = await this.gapRepository.findAll();
+    return gaps.map(gap => this.gapMapper.prismaToEntity(gap));
   }
 
   @Get(':id')
@@ -197,7 +213,11 @@ export class GapAnalysisController {
     },
   })
   async findOne(@Param('id') id: string): Promise<GapAnalysisEntity> {
-    return this.gapAnalysisService.findOne(id);
+    const gap = await this.gapRepository.findOne(id);
+    if (!gap) {
+      throw new NotFoundException(`Gap analysis with ID ${id} not found`);
+    }
+    return this.gapMapper.prismaToEntity(gap);
   }
 
   @Patch(':id')
@@ -287,7 +307,8 @@ export class GapAnalysisController {
     @Param('id') id: string,
     @Body() updateGapAnalysisDto: UpdateGapAnalysisDto
   ): Promise<GapAnalysisEntity> {
-    return this.gapAnalysisService.update(id, updateGapAnalysisDto);
+    const gap = await this.gapRepository.update(id, updateGapAnalysisDto);
+    return this.gapMapper.prismaToEntity(gap);
   }
 
   @Delete(':id')
@@ -324,7 +345,7 @@ export class GapAnalysisController {
     },
   })
   async remove(@Param('id') id: string): Promise<void> {
-    return this.gapAnalysisService.remove(id);
+    return this.gapRepository.remove(id);
   }
 
   @Post(':projectId/analyze')
@@ -355,17 +376,41 @@ export class GapAnalysisController {
   @ApiResponse({
     status: 201,
     description: 'Gap analysis performed successfully',
-    type: GapAnalysisEntity,
+    type: GapAnalysisResultDto,
     example: {
-      id: 'gap_auto_987654321',
       projectId: 'proj_123456789',
-      title: 'Resource Over-utilization',
-      description:
-        'Resources are over-utilized at 95.0% affecting team sustainability',
-      type: 'resource',
-      severity: 'high',
-      createdAt: '2024-01-15T10:30:00Z',
-      updatedAt: '2024-01-15T10:30:00Z',
+      analysisTimestamp: '2024-01-15T10:30:00Z',
+      identifiedGaps: {
+        resource: [
+          {
+            id: 'gap_resource_001',
+            projectId: 'proj_123456789',
+            type: 'resource',
+            category: 'operational',
+            title: 'Resource Over-utilization',
+            description:
+              'Resources are over-utilized at 95.0% affecting team sustainability',
+            currentValue: 0.95,
+            targetValue: 0.8,
+            variance: 0.15,
+            severity: 'high',
+            confidence: 0.85,
+          },
+        ],
+        process: [],
+        communication: [],
+        technology: [],
+        culture: [],
+        timeline: [],
+        quality: [],
+        budget: [],
+        skill: [],
+        governance: [],
+      },
+      overallHealthScore: 75,
+      prioritizedRecommendations: [],
+      executionTimeMs: 1250,
+      confidence: 0.87,
     },
   })
   @ApiBadRequestResponse({
@@ -394,8 +439,12 @@ export class GapAnalysisController {
   })
   async performAnalysis(
     @Param('projectId') projectId: string
-  ): Promise<GapAnalysisEntity> {
-    return this.gapAnalysisService.performAnalysis(projectId);
+  ): Promise<GapAnalysisResultDto> {
+    const projectData =
+      await this.projectDataService.fetchProjectData(projectId);
+    const result = await this.gapAnalysisService.performAnalysis(projectData);
+    await this.projectDataService.storeAnalysisRecord(result);
+    return ResultMapperHelper.mapToResultDto(result);
   }
 
   @Get(':projectId/detailed-analysis')
@@ -524,13 +573,9 @@ export class GapAnalysisController {
   async getDetailedAnalysis(
     @Param('projectId') projectId: string
   ): Promise<GapAnalysisResultDto> {
-    // For now, this would call a method that returns the detailed analysis
-    // In a real implementation, this might fetch from a cache or database
     const projectData =
-      await this.gapAnalysisService['fetchProjectData'](projectId);
-    const analysisResult =
-      await this.gapAnalysisService.analyzeProject(projectData);
-
-    return analysisResult as unknown; // Type assertion for now - would need proper mapping
+      await this.projectDataService.fetchProjectData(projectId);
+    const result = await this.gapAnalysisService.performAnalysis(projectData);
+    return ResultMapperHelper.mapToResultDto(result);
   }
 }

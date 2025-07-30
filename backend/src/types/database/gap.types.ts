@@ -56,34 +56,30 @@ export interface ProjectArea {
 
 // Gap-related enums
 export enum GapType {
-  RESOURCE = 'resource',
-  PROCESS = 'process',
-  COMMUNICATION = 'communication',
-  TECHNOLOGY = 'technology',
-  CULTURE = 'culture',
-  TIMELINE = 'timeline',
-  QUALITY = 'quality',
-  BUDGET = 'budget',
-  SKILL = 'skill',
-  GOVERNANCE = 'governance',
+  RESOURCE = 'RESOURCE',
+  PROCESS = 'PROCESS',
+  COMMUNICATION = 'COMMUNICATION',
+  TECHNOLOGY = 'TECHNOLOGY',
+  CULTURE = 'CULTURE',
+  TIMELINE = 'TIMELINE',
+  QUALITY = 'QUALITY',
+  BUDGET = 'BUDGET',
+  SKILL = 'SKILL',
 }
 
 export enum GapCategory {
-  OPERATIONAL = 'operational',
-  STRATEGIC = 'strategic',
-  TACTICAL = 'tactical',
-  TECHNICAL = 'technical',
-  ORGANIZATIONAL = 'organizational',
+  OPERATIONAL = 'OPERATIONAL',
+  STRATEGIC = 'STRATEGIC',
+  TACTICAL = 'TACTICAL',
+  TECHNICAL = 'TECHNICAL',
+  ORGANIZATIONAL = 'ORGANIZATIONAL',
 }
 
 export enum GapStatus {
-  IDENTIFIED = 'identified',
-  ANALYZING = 'analyzing',
-  PLANNING = 'planning',
-  IN_PROGRESS = 'in_progress',
-  RESOLVED = 'resolved',
-  CLOSED = 'closed',
-  DEFERRED = 'deferred',
+  OPEN = 'OPEN',
+  IN_PROGRESS = 'IN_PROGRESS',
+  RESOLVED = 'RESOLVED',
+  CLOSED = 'CLOSED',
 }
 
 export enum RootCauseCategory {
@@ -122,10 +118,10 @@ export enum CriticalityLevel {
 
 // Common enums used across gap analysis
 export enum SeverityLevel {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  CRITICAL = 'critical',
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL',
 }
 
 export enum Priority {
