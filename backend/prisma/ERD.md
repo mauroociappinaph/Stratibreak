@@ -104,6 +104,34 @@ VOLATILE VOLATILE
     
 
 
+        GapCategory {
+            OPERATIONAL OPERATIONAL
+STRATEGIC STRATEGIC
+TACTICAL TACTICAL
+TECHNICAL TECHNICAL
+ORGANIZATIONAL ORGANIZATIONAL
+        }
+    
+
+
+        RiskLevel {
+            LOW LOW
+MEDIUM MEDIUM
+HIGH HIGH
+CRITICAL CRITICAL
+        }
+    
+
+
+        SeverityLevel {
+            LOW LOW
+MEDIUM MEDIUM
+HIGH HIGH
+CRITICAL CRITICAL
+        }
+    
+
+
         AuditAction {
             VIEW_GAP_ANALYSIS VIEW_GAP_ANALYSIS
 MODIFY_PROJECT MODIFY_PROJECT
@@ -140,6 +168,31 @@ LOGOUT LOGOUT
     DateTime endDate "❓"
     DateTime createdAt 
     DateTime updatedAt 
+    Float progress "❓"
+    Float healthScore "❓"
+    Float resourceUtilization "❓"
+    Int availableResources "❓"
+    Int allocatedResources "❓"
+    Float budgetAllocated "❓"
+    Float budgetSpent "❓"
+    Float budgetRemaining "❓"
+    Float budgetBurnRate "❓"
+    Int totalTeamMembers "❓"
+    Int activeTeamMembers "❓"
+    Float teamCapacity "❓"
+    Float teamWorkload "❓"
+    Float timelineProgress "❓"
+    Json milestones "❓"
+    Int timelineDelays "❓"
+    Float qualityScore "❓"
+    Float defectRate "❓"
+    Float testCoverage "❓"
+    Float codeQuality "❓"
+    Float customerSatisfaction "❓"
+    RiskLevel overallRisk "❓"
+    Int activeRisks "❓"
+    Int mitigatedRisks "❓"
+    TrendDirection riskTrend "❓"
     }
   
 
@@ -148,11 +201,13 @@ LOGOUT LOGOUT
     String title 
     String description 
     GapType type 
+    GapCategory category 
     Severity severity 
     GapStatus status 
     Json currentValue "❓"
     Json targetValue "❓"
     String impact "❓"
+    Float confidence "❓"
     DateTime identifiedAt 
     DateTime createdAt 
     DateTime updatedAt 
@@ -262,7 +317,7 @@ LOGOUT LOGOUT
     String id "🗝️"
     String title 
     String description 
-    Severity priority 
+    SeverityLevel priority 
     Int estimatedEffort 
     DateTime createdAt 
     DateTime updatedAt 
@@ -321,6 +376,8 @@ LOGOUT LOGOUT
     "users" o{--}o "integrations" : "integrations"
     "users" o{--}o "audit_logs" : "auditLogs"
     "projects" o|--|| "ProjectStatus" : "enum:status"
+    "projects" o|--|o "RiskLevel" : "enum:overallRisk"
+    "projects" o|--|o "TrendDirection" : "enum:riskTrend"
     "projects" o|--|| "users" : "user"
     "projects" o|--|| "tenants" : "tenant"
     "projects" o{--}o "gaps" : "gaps"
@@ -330,6 +387,7 @@ LOGOUT LOGOUT
     "projects" o{--}o "project_goals" : "goals"
     "projects" o{--}o "analysis_records" : "analysisHistory"
     "gaps" o|--|| "GapType" : "enum:type"
+    "gaps" o|--|| "GapCategory" : "enum:category"
     "gaps" o|--|| "Severity" : "enum:severity"
     "gaps" o|--|| "GapStatus" : "enum:status"
     "gaps" o|--|| "projects" : "project"
@@ -357,7 +415,7 @@ LOGOUT LOGOUT
     "root_causes" o|--|| "gaps" : "gap"
     "project_areas" o|--|| "Severity" : "enum:impactLevel"
     "project_areas" o|--|| "gaps" : "gap"
-    "preventive_actions" o|--|| "Severity" : "enum:priority"
+    "preventive_actions" o|--|| "SeverityLevel" : "enum:priority"
     "preventive_actions" o|--|| "predictions" : "prediction"
     "risk_indicators" o|--|| "TrendDirection" : "enum:trend"
     "risk_indicators" o|--|| "predictions" : "prediction"
