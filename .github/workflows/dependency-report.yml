@@ -1,0 +1,49 @@
+name: Weekly Dependency Report
+
+on:
+  schedule:
+    - cron: '0 8 * * 1' # Run every Monday at 8 AM UTC
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for outdated packages
+        id: outdated
+        run: echo "PACKAGES=$(pnpm outdated)" >> $GITHUB_OUTPUT
+
+      - name: Create issue if packages are outdated
+        if: steps.outdated.outputs.PACKAGES != ''
+        uses: actions-ecosystem/action-create-issue@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          title: 'Weekly Dependency Report 🤖'
+          body: |
+            ### 📦 Outdated Dependencies
+
+            The following packages are outdated. Please review and update them.
+
+            ```
+            ${{ steps.outdated.outputs.PACKAGES }}
+            ```
+          labels: |
+            dependencies
+            automated

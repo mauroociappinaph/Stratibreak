@@ -5,92 +5,130 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   Patch,
   Post,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CreateGapAnalysisDto, UpdateGapAnalysisDto } from '../dto';
+import { ApiTags } from '@nestjs/swagger';
+import {
+  AutomatedGapAnalysisResultDto,
+  CreateGapAnalysisDto,
+  GapAnalysisResultDto,
+  UpdateGapAnalysisDto,
+} from '../dto';
 import { GapAnalysisEntity } from '../entities';
+import { ResultMapperHelper } from '../helpers/result-mapper.helper';
+import { GapMapper } from '../mappers/gap.mapper';
+import { GapRepository } from '../repositories/gap.repository';
 import { GapAnalysisService } from '../services/gap-analysis.service';
+import { ProjectDataService } from '../services/project-data.service';
+import { SwaggerDocs } from './gap-analysis.swagger';
 
-@ApiTags('gap-analysis')
+@ApiTags('Gap Analysis')
 @Controller('gap-analysis')
 export class GapAnalysisController {
-  constructor(private readonly gapAnalysisService: GapAnalysisService) {}
+  constructor(
+    private readonly gapAnalysisService: GapAnalysisService,
+    private readonly gapRepository: GapRepository,
+    private readonly gapMapper: GapMapper,
+    private readonly projectDataService: ProjectDataService
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new gap analysis' })
-  @ApiResponse({
-    status: 201,
-    description: 'Gap analysis created successfully',
-    type: GapAnalysisEntity,
-  })
+  @SwaggerDocs.create.operation
+  @SwaggerDocs.create.body
+  @SwaggerDocs.create.responses.success
+  @SwaggerDocs.create.responses.badRequest
+  @SwaggerDocs.create.responses.serverError
   async create(
     @Body() createGapAnalysisDto: CreateGapAnalysisDto
   ): Promise<GapAnalysisEntity> {
-    return this.gapAnalysisService.create(createGapAnalysisDto);
+    const gap = await this.gapRepository.create(createGapAnalysisDto);
+    return this.gapMapper.prismaToEntity(gap);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all gap analyses' })
-  @ApiResponse({
-    status: 200,
-    description: 'List of gap analyses',
-    type: [GapAnalysisEntity],
-  })
+  @SwaggerDocs.findAll.operation
+  @SwaggerDocs.findAll.responses.success
+  @SwaggerDocs.findAll.responses.serverError
   async findAll(): Promise<GapAnalysisEntity[]> {
-    return this.gapAnalysisService.findAll();
+    const gaps = await this.gapRepository.findAll();
+    return gaps.map(gap => this.gapMapper.prismaToEntity(gap));
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get gap analysis by ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Gap analysis found',
-    type: GapAnalysisEntity,
-  })
+  @SwaggerDocs.findOne.operation
+  @SwaggerDocs.findOne.param
+  @SwaggerDocs.findOne.responses.success
+  @SwaggerDocs.findOne.responses.notFound
+  @SwaggerDocs.findOne.responses.serverError
   async findOne(@Param('id') id: string): Promise<GapAnalysisEntity> {
-    return this.gapAnalysisService.findOne(id);
+    const gap = await this.gapRepository.findOne(id);
+    if (!gap) {
+      throw new NotFoundException(`Gap analysis with ID ${id} not found`);
+    }
+    return this.gapMapper.prismaToEntity(gap);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update gap analysis' })
-  @ApiResponse({
-    status: 200,
-    description: 'Gap analysis updated successfully',
-    type: GapAnalysisEntity,
-  })
+  @SwaggerDocs.update.operation
+  @SwaggerDocs.update.param
+  @SwaggerDocs.update.body
+  @SwaggerDocs.update.responses.success
+  @SwaggerDocs.update.responses.badRequest
+  @SwaggerDocs.update.responses.notFound
+  @SwaggerDocs.update.responses.serverError
   async update(
     @Param('id') id: string,
     @Body() updateGapAnalysisDto: UpdateGapAnalysisDto
   ): Promise<GapAnalysisEntity> {
-    return this.gapAnalysisService.update(id, updateGapAnalysisDto);
+    const gap = await this.gapRepository.update(id, updateGapAnalysisDto);
+    return this.gapMapper.prismaToEntity(gap);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete gap analysis' })
-  @ApiResponse({
-    status: 204,
-    description: 'Gap analysis deleted successfully',
-  })
+  @SwaggerDocs.remove.operation
+  @SwaggerDocs.remove.param
+  @SwaggerDocs.remove.responses.success
+  @SwaggerDocs.remove.responses.notFound
+  @SwaggerDocs.remove.responses.serverError
   async remove(@Param('id') id: string): Promise<void> {
-    return this.gapAnalysisService.remove(id);
+    return this.gapRepository.remove(id);
   }
 
   @Post(':projectId/analyze')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Perform gap analysis on project' })
-  @ApiResponse({
-    status: 201,
-    description: 'Gap analysis performed successfully',
-    type: GapAnalysisEntity,
-  })
+  @SwaggerDocs.performAnalysis.operation
+  @SwaggerDocs.performAnalysis.param
+  @SwaggerDocs.performAnalysis.responses.success
+  @SwaggerDocs.performAnalysis.responses.badRequest
+  @SwaggerDocs.performAnalysis.responses.notFound
+  @SwaggerDocs.performAnalysis.responses.serverError
   async performAnalysis(
     @Param('projectId') projectId: string
-  ): Promise<GapAnalysisEntity> {
-    return this.gapAnalysisService.performAnalysis(projectId);
+  ): Promise<AutomatedGapAnalysisResultDto> {
+    const projectData =
+      await this.projectDataService.fetchProjectData(projectId);
+    const result = await this.gapAnalysisService.performAnalysis(projectData);
+    await this.projectDataService.storeAnalysisRecord(result);
+    return ResultMapperHelper.mapToResultDto(result);
+  }
+
+  @Get(':projectId/detailed-analysis')
+  @SwaggerDocs.getDetailedAnalysis.operation
+  @SwaggerDocs.getDetailedAnalysis.param
+  @SwaggerDocs.getDetailedAnalysis.responses.success
+  @SwaggerDocs.getDetailedAnalysis.responses.notFound
+  @SwaggerDocs.getDetailedAnalysis.responses.serverError
+  async getDetailedAnalysis(
+    @Param('projectId') projectId: string
+  ): Promise<GapAnalysisResultDto> {
+    const projectData =
+      await this.projectDataService.fetchProjectData(projectId);
+    const result = await this.gapAnalysisService.performAnalysis(projectData);
+    return ResultMapperHelper.mapToDetailedResultDto(result);
   }
 }

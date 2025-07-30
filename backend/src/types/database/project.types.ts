@@ -83,6 +83,12 @@ export interface AnalysisRecord {
   executedBy: string;
 }
 
+export interface ProjectData {
+  project: ProjectEntity;
+  currentState: ProjectState;
+  goals: ProjectGoal[];
+}
+
 // Project-related enums
 export enum ProjectStatus {
   DRAFT = 'draft',

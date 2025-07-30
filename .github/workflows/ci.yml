@@ -138,7 +138,6 @@ jobs:
         run: |
           cd ml-services
           pip install -r requirements.txt
-          pip install pytest pytest-cov
 
       - name: Run ML tests
         run: |
@@ -178,8 +177,50 @@ jobs:
       - name: Build frontend
         run: pnpm --filter frontend build
 
-      - name: Build Docker images
-        run: |
-          docker build -t backend:latest ./backend
-          docker build -t frontend:latest ./frontend
-          docker build -t ml-services:latest ./ml-services
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and cache Docker images
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          tags: backend:latest
+          load: true # Load image into the runner
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and cache frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          tags: frontend:latest
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and cache ml-services image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ml-services
+          tags: ml-services:latest
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Create issue on build failure
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
+        uses: actions-ecosystem/action-create-issue@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          title: 'URGENT: CI Build Failed on main branch 🚨'
+          body: |
+            The CI build for the `main` branch has failed.
+
+            - **Workflow Run:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - **Commit:** ${{ github.sha }}
+
+            Please investigate and fix the issue immediately to unblock the pipeline.
+          labels: |
+            bug
+            critical
+            automated

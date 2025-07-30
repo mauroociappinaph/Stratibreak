@@ -5,6 +5,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "./ERD.md"
+  theme    = "dark"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -51,6 +57,33 @@ model Project {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
+  // Fields for ProjectState
+  progress             Float?          @db.DoublePrecision
+  healthScore          Float?          @db.DoublePrecision
+  resourceUtilization  Float?          @db.DoublePrecision
+  availableResources   Int?
+  allocatedResources   Int?
+  budgetAllocated      Float?          @db.DoublePrecision
+  budgetSpent          Float?          @db.DoublePrecision
+  budgetRemaining      Float?          @db.DoublePrecision
+  budgetBurnRate       Float?          @db.DoublePrecision
+  totalTeamMembers     Int?
+  activeTeamMembers    Int?
+  teamCapacity         Float?          @db.DoublePrecision
+  teamWorkload         Float?          @db.DoublePrecision
+  timelineProgress     Float?          @db.DoublePrecision
+  milestones           Json?
+  timelineDelays       Int?
+  qualityScore         Float?          @db.DoublePrecision
+  defectRate           Float?          @db.DoublePrecision
+  testCoverage         Float?          @db.DoublePrecision
+  codeQuality          Float?          @db.DoublePrecision
+  customerSatisfaction Float?          @db.DoublePrecision
+  overallRisk          RiskLevel?
+  activeRisks          Int?
+  mitigatedRisks       Int?
+  riskTrend            TrendDirection?
+
   // Relations
   userId          String
   user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -73,18 +106,20 @@ model Project {
 }
 
 model Gap {
-  id           String    @id @default(cuid())
+  id           String      @id @default(cuid())
   title        String
   description  String
   type         GapType
+  category     GapCategory @default(OPERATIONAL)
   severity     Severity
-  status       GapStatus @default(OPEN)
+  status       GapStatus   @default(OPEN)
   currentValue Json? // Flexible field for current state data
   targetValue  Json? // Flexible field for target state data
   impact       String?
-  identifiedAt DateTime  @default(now())
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  confidence   Float?      @db.DoublePrecision
+  identifiedAt DateTime    @default(now())
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   // Relations
   projectId     String
@@ -292,13 +327,13 @@ model ProjectArea {
 }
 
 model PreventiveAction {
-  id              String   @id @default(cuid())
+  id              String        @id @default(cuid())
   title           String
   description     String
-  priority        Severity
+  priority        SeverityLevel
   estimatedEffort Int // in hours
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   // Relations
   predictionId String
@@ -306,7 +341,6 @@ model PreventiveAction {
 
   // Indexes for performance
   @@index([predictionId])
-  @@index([priority])
   @@map("preventive_actions")
 }
 
@@ -476,6 +510,28 @@ enum TrendDirection {
   DOWN
   STABLE
   VOLATILE
+}
+
+enum GapCategory {
+  OPERATIONAL
+  STRATEGIC
+  TACTICAL
+  TECHNICAL
+  ORGANIZATIONAL
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SeverityLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }
 
 enum AuditAction {
