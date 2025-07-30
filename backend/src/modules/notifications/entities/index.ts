@@ -1,2 +1,1 @@
-// Notifications Entities
-// TODO: Add entities when created
+export * from './notification.entity';
