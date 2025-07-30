@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Gap, SeverityLevel } from '@prisma/client';
-import { Recommendation } from '../../../types/services/gap-analysis.types';
+import { GapType, Severity } from '@prisma/client';
+import {
+  Gap,
+  Recommendation,
+} from '../../../types/services/gap-analysis.types';
 
 @Injectable()
 export class RecommendationService {
@@ -12,7 +15,7 @@ export class RecommendationService {
       description: this.generateRecommendationDescription(gap),
       priority: this.mapSeverityToPriority(gap.severity),
       estimatedEffort: this.estimateEffort(gap),
-      estimatedImpact: gap.confidence,
+      estimatedImpact: gap.confidence ?? 0.8,
       requiredResources: this.identifyRequiredResources(gap),
       timeline: this.estimateTimeline(gap),
       dependencies: [],
@@ -21,13 +24,13 @@ export class RecommendationService {
 
   private generateRecommendationDescription(gap: Gap): string {
     switch (gap.type) {
-      case 'resource':
+      case GapType.RESOURCE:
         return `Allocate additional resources or optimize current resource utilization for ${gap.title}`;
-      case 'timeline':
+      case GapType.TIMELINE:
         return `Implement timeline recovery strategies and improve scheduling for ${gap.title}`;
-      case 'quality':
+      case GapType.QUALITY:
         return `Enhance quality assurance processes and implement additional testing for ${gap.title}`;
-      case 'communication':
+      case GapType.COMMUNICATION:
         return `Improve communication channels and establish regular check-ins for ${gap.title}`;
       default:
         return `Implement corrective measures to address ${gap.title}`;
@@ -35,16 +38,16 @@ export class RecommendationService {
   }
 
   private mapSeverityToPriority(
-    severity: SeverityLevel
+    severity: Severity
   ): 'low' | 'medium' | 'high' | 'urgent' {
     switch (severity) {
-      case 'critical':
+      case Severity.CRITICAL:
         return 'urgent';
-      case 'high':
+      case Severity.HIGH:
         return 'high';
-      case 'medium':
+      case Severity.MEDIUM:
         return 'medium';
-      case 'low':
+      case Severity.LOW:
         return 'low';
       default:
         return 'medium';
@@ -52,14 +55,16 @@ export class RecommendationService {
   }
 
   private estimateEffort(gap: Gap): number {
-    const baseEffort = {
-      critical: 40,
-      high: 24,
-      medium: 16,
-      low: 8,
+    const baseEffort: Record<Severity, number> = {
+      [Severity.CRITICAL]: 40,
+      [Severity.HIGH]: 24,
+      [Severity.MEDIUM]: 16,
+      [Severity.LOW]: 8,
     };
 
-    const complexityMultiplier = gap.rootCauses.length > 2 ? 1.5 : 1.0;
+    // Simple complexity multiplier since we don't have rootCauses in the basic Gap model
+    const complexityMultiplier =
+      gap.description && gap.description.length > 100 ? 1.5 : 1.0;
     return baseEffort[gap.severity] * complexityMultiplier;
   }
 
@@ -67,16 +72,16 @@ export class RecommendationService {
     const resources = ['Project Manager'];
 
     switch (gap.type) {
-      case 'resource':
+      case GapType.RESOURCE:
         resources.push('HR Manager', 'Additional Team Members');
         break;
-      case 'technology':
+      case GapType.TECHNOLOGY:
         resources.push('Technical Lead', 'DevOps Engineer');
         break;
-      case 'quality':
+      case GapType.QUALITY:
         resources.push('QA Lead', 'Testing Resources');
         break;
-      case 'communication':
+      case GapType.COMMUNICATION:
         resources.push('Communication Specialist', 'Stakeholder Manager');
         break;
       default:
@@ -88,13 +93,13 @@ export class RecommendationService {
 
   private estimateTimeline(gap: Gap): string {
     switch (gap.severity) {
-      case 'critical':
+      case Severity.CRITICAL:
         return '1-2 weeks';
-      case 'high':
+      case Severity.HIGH:
         return '2-4 weeks';
-      case 'medium':
+      case Severity.MEDIUM:
         return '1-2 months';
-      case 'low':
+      case Severity.LOW:
         return '2-3 months';
       default:
         return '1 month';

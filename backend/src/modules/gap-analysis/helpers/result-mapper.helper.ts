@@ -1,8 +1,10 @@
+import { GapStatus } from '../../../types/database/gap.types';
 import type {
   CategorizedGaps,
   Gap,
   GapAnalysisResult,
 } from '../../../types/services/gap-analysis.types';
+import type { AutomatedGapAnalysisResultDto } from '../dto/automated-gap-analysis-result.dto';
 import type {
   CategorizedGapsDto,
   DetailedGapDto,
@@ -12,9 +14,47 @@ import type {
 
 export class ResultMapperHelper {
   /**
-   * Maps service result to DTO format
+   * Maps service result to simplified DTO format for automated analysis
    */
-  static mapToResultDto(result: GapAnalysisResult): GapAnalysisResultDto {
+  static mapToResultDto(
+    result: GapAnalysisResult
+  ): AutomatedGapAnalysisResultDto {
+    const allGaps = Object.values(result.identifiedGaps).flat();
+
+    return {
+      projectId: result.projectId,
+      analysisTimestamp: result.analysisTimestamp,
+      identifiedGaps: allGaps.map(gap => ({
+        projectId: gap.projectId,
+        title: gap.title,
+        description: gap.description,
+        type: gap.type,
+        category: gap.category,
+        severity: gap.severity,
+        status: GapStatus.OPEN,
+        currentValue: gap.currentValue,
+        targetValue: gap.targetValue,
+        impact: gap.estimatedImpact?.description || 'Impact assessment pending',
+        confidence: gap.confidence,
+        userId: 'system',
+      })),
+      overallConfidence: result.confidence,
+      executionTimeMs: result.executionTimeMs,
+      summary: {
+        totalGaps: allGaps.length,
+        criticalGaps: allGaps.filter(g => g.severity === 'critical').length,
+        highSeverityGaps: allGaps.filter(g => g.severity === 'high').length,
+        averageConfidence: this.calculateAverageConfidence(allGaps),
+      },
+    };
+  }
+
+  /**
+   * Maps service result to detailed DTO format
+   */
+  static mapToDetailedResultDto(
+    result: GapAnalysisResult
+  ): GapAnalysisResultDto {
     const mappedGaps = this.mapCategorizedGaps(result.identifiedGaps);
 
     return {

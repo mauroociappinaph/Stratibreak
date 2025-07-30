@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { GapAnalysisModule } from './modules/gap-analysis/gap-analysis.module';
 
 @Module({
   imports: [
@@ -9,6 +10,7 @@ import { AppService } from './app.service';
       isGlobal: true,
       envFilePath: ['.env.development', '.env'],
     }),
+    GapAnalysisModule,
   ],
   controllers: [AppController],
   providers: [AppService],

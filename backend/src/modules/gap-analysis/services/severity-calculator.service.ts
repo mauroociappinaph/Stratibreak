@@ -1,17 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type {
+import {
   GapCategory,
   GapType,
   ImpactLevel,
+  SeverityLevel,
 } from '../../../types/database/gap.types';
 import type {
   AnalysisConfig,
   Gap,
   SeverityFactors,
 } from '../../../types/services/gap-analysis.types';
+import { SeverityCalculationHelper } from '../helpers/severity-calculation.helper';
 
 /**
- * Advanced severity calculation service with multiple algorithms
+ * Core severity calculation service with focused responsibilities
  */
 @Injectable()
 export class SeverityCalculatorService {
@@ -28,31 +30,30 @@ export class SeverityCalculatorService {
 
   // Gap type multipliers for severity calculation
   private readonly gapTypeMultipliers: Record<GapType, number> = {
-    resource: 0.9,
-    process: 0.8,
-    communication: 0.7,
-    technology: 0.8,
-    culture: 0.6,
-    timeline: 0.9,
-    quality: 0.8,
-    budget: 0.9,
-    skill: 0.7,
-    governance: 0.6,
+    [GapType.RESOURCE]: 0.9,
+    [GapType.PROCESS]: 0.8,
+    [GapType.COMMUNICATION]: 0.7,
+    [GapType.TECHNOLOGY]: 0.8,
+    [GapType.CULTURE]: 0.6,
+    [GapType.TIMELINE]: 0.9,
+    [GapType.QUALITY]: 0.8,
+    [GapType.BUDGET]: 0.9,
+    [GapType.SKILL]: 0.7,
   };
 
   // Category impact multipliers
   private readonly categoryMultipliers: Record<GapCategory, number> = {
-    operational: 0.9,
-    strategic: 0.8,
-    tactical: 0.7,
-    technical: 0.8,
-    organizational: 0.6,
+    [GapCategory.OPERATIONAL]: 0.9,
+    [GapCategory.STRATEGIC]: 0.8,
+    [GapCategory.TACTICAL]: 0.7,
+    [GapCategory.TECHNICAL]: 0.8,
+    [GapCategory.ORGANIZATIONAL]: 0.6,
   };
 
   /**
    * Main severity calculation method using weighted factors
    */
-  calculateGapSeverity(gap: Gap, _config?: AnalysisConfig): SeverityLevel {
+  calculateGapSeverity(gap: Gap): SeverityLevel {
     try {
       // Extract severity factors from gap
       const factors = this.extractSeverityFactors(gap);
@@ -85,81 +86,7 @@ export class SeverityCalculatorService {
         `Error calculating severity for gap ${gap.title}:`,
         error
       );
-      return 'medium'; // Default fallback
-    }
-  }
-
-  /**
-   * Alternative severity calculation using machine learning-inspired approach
-   */
-  calculateMLInspiredSeverity(gap: Gap, historicalGaps?: Gap[]): SeverityLevel {
-    try {
-      // Feature extraction
-      const features = this.extractMLFeatures(gap);
-
-      // Apply learned weights (simplified ML approach)
-      const mlScore = this.applyMLWeights(features, historicalGaps);
-
-      // Normalize and convert to severity
-      const normalizedScore = this.normalizeMLScore(mlScore);
-
-      return this.convertScoreToSeverityLevel(normalizedScore);
-    } catch (error) {
-      this.logger.error(`Error in ML-inspired severity calculation:`, error);
-      return this.calculateGapSeverity(gap); // Fallback to standard method
-    }
-  }
-
-  /**
-   * Risk-based severity calculation
-   */
-  calculateRiskBasedSeverity(gap: Gap): SeverityLevel {
-    try {
-      // Calculate probability of escalation
-      const escalationProbability = this.calculateEscalationProbability(gap);
-
-      // Calculate potential impact magnitude
-      const impactMagnitude = this.calculateImpactMagnitude(gap);
-
-      // Calculate time sensitivity
-      const timeSensitivity = this.calculateTimeSensitivity(gap);
-
-      // Combine risk factors
-      const riskScore =
-        escalationProbability * 0.4 +
-        impactMagnitude * 0.4 +
-        timeSensitivity * 0.2;
-
-      return this.convertScoreToSeverityLevel(riskScore);
-    } catch (error) {
-      this.logger.error(`Error in risk-based severity calculation:`, error);
-      return 'medium';
-    }
-  }
-
-  /**
-   * Comparative severity calculation using benchmarks
-   */
-  calculateComparativeSeverity(gap: Gap, benchmarkGaps: Gap[]): SeverityLevel {
-    try {
-      if (benchmarkGaps.length === 0) {
-        return this.calculateGapSeverity(gap);
-      }
-
-      // Calculate percentile ranking
-      const gapScore = this.calculateGapScore(gap);
-      const benchmarkScores = benchmarkGaps.map(g => this.calculateGapScore(g));
-
-      const percentile = this.calculatePercentile(gapScore, benchmarkScores);
-
-      // Convert percentile to severity
-      if (percentile >= 0.9) return 'critical';
-      if (percentile >= 0.7) return 'high';
-      if (percentile >= 0.4) return 'medium';
-      return 'low';
-    } catch (error) {
-      this.logger.error(`Error in comparative severity calculation:`, error);
-      return 'medium';
+      return SeverityLevel.MEDIUM; // Default fallback
     }
   }
 
@@ -179,7 +106,7 @@ export class SeverityCalculatorService {
       const weights: number[] = [];
 
       // Standard weighted calculation
-      severities.push(this.calculateGapSeverity(gap, options?.config));
+      severities.push(this.calculateGapSeverity(gap));
       weights.push(0.4);
 
       // Risk-based calculation
@@ -193,7 +120,7 @@ export class SeverityCalculatorService {
         );
         weights.push(0.2);
       } else {
-        if (weights[1] !== undefined) weights[1] += 0.2; // Add weight to risk-based
+        weights[1] = (weights[1] || 0) + 0.2; // Add weight to risk-based
       }
 
       // Comparative calculation (if benchmark data available)
@@ -203,14 +130,90 @@ export class SeverityCalculatorService {
         );
         weights.push(0.1);
       } else {
-        if (weights[0] !== undefined) weights[0] += 0.1; // Add weight to standard
+        weights[0] = (weights[0] || 0) + 0.1; // Add weight to standard
       }
 
       // Calculate weighted ensemble result
       return this.calculateWeightedEnsemble(severities, weights);
     } catch (error) {
       this.logger.error(`Error in ensemble severity calculation:`, error);
-      return 'medium';
+      return SeverityLevel.MEDIUM;
+    }
+  }
+
+  /**
+   * Risk-based severity calculation
+   */
+  private calculateRiskBasedSeverity(gap: Gap): SeverityLevel {
+    try {
+      const escalationProbability =
+        SeverityCalculationHelper.calculateEscalationProbability(gap);
+      const impactMagnitude =
+        SeverityCalculationHelper.calculateImpactMagnitude(gap);
+      const timeSensitivity =
+        SeverityCalculationHelper.calculateTimeSensitivity(gap);
+
+      const riskScore =
+        escalationProbability * 0.4 +
+        impactMagnitude * 0.4 +
+        timeSensitivity * 0.2;
+
+      return this.convertScoreToSeverityLevel(riskScore);
+    } catch (error) {
+      this.logger.error(`Error in risk-based severity calculation:`, error);
+      return SeverityLevel.MEDIUM;
+    }
+  }
+
+  /**
+   * ML-inspired severity calculation
+   */
+  private calculateMLInspiredSeverity(
+    gap: Gap,
+    historicalGaps?: Gap[]
+  ): SeverityLevel {
+    try {
+      const features = SeverityCalculationHelper.extractMLFeatures(gap);
+      const mlScore = SeverityCalculationHelper.applyMLWeights(
+        features,
+        historicalGaps
+      );
+      const normalizedScore =
+        SeverityCalculationHelper.normalizeMLScore(mlScore);
+
+      return this.convertScoreToSeverityLevel(normalizedScore);
+    } catch (error) {
+      this.logger.error(`Error in ML-inspired severity calculation:`, error);
+      return this.calculateGapSeverity(gap);
+    }
+  }
+
+  /**
+   * Comparative severity calculation using benchmarks
+   */
+  private calculateComparativeSeverity(
+    gap: Gap,
+    benchmarkGaps: Gap[]
+  ): SeverityLevel {
+    try {
+      if (benchmarkGaps.length === 0) {
+        return this.calculateGapSeverity(gap);
+      }
+
+      const gapScore = this.calculateGapScore(gap);
+      const benchmarkScores = benchmarkGaps.map(g => this.calculateGapScore(g));
+      const percentile = SeverityCalculationHelper.calculatePercentile(
+        gapScore,
+        benchmarkScores
+      );
+
+      if (percentile >= 0.9) return SeverityLevel.CRITICAL;
+      if (percentile >= 0.7) return SeverityLevel.HIGH;
+      if (percentile >= 0.4) return SeverityLevel.MEDIUM;
+      return SeverityLevel.LOW;
+    } catch (error) {
+      this.logger.error(`Error in comparative severity calculation:`, error);
+      return SeverityLevel.MEDIUM;
     }
   }
 
@@ -245,43 +248,28 @@ export class SeverityCalculatorService {
   }
 
   private calculateUrgencyScore(gap: Gap): number {
-    // Base urgency on variance magnitude and timeframe
     const varianceUrgency = Math.min(1.0, Math.abs(gap.variance) * 2);
-
     const timeframeUrgency =
-      gap.estimatedImpact.timeframe === 'immediate'
-        ? 1.0
-        : gap.estimatedImpact.timeframe === 'short-term'
-          ? 0.8
-          : gap.estimatedImpact.timeframe === 'medium-term'
-            ? 0.6
-            : gap.estimatedImpact.timeframe === 'long-term'
-              ? 0.4
-              : 0.5;
-
+      SeverityCalculationHelper.calculateTimeSensitivity(gap);
     return (varianceUrgency + timeframeUrgency) / 2;
   }
 
   private calculateComplexityScore(gap: Gap): number {
-    // Complexity based on number of root causes and affected areas
     const rootCauseComplexity = Math.min(1.0, gap.rootCauses.length / 5);
     const areaComplexity = Math.min(1.0, gap.affectedAreas.length / 3);
     const typeComplexity = this.getTypeComplexity(gap.type);
-
     return (rootCauseComplexity + areaComplexity + typeComplexity) / 3;
   }
 
   private calculateResourceRequirementScore(gap: Gap): number {
-    // Resource requirement based on gap type and complexity
     const baseRequirement = this.getBaseResourceRequirement(gap.type);
     const complexityMultiplier = 1 + gap.rootCauses.length * 0.1;
-
     return Math.min(1.0, baseRequirement * complexityMultiplier);
   }
 
   private calculateStakeholderImpactScore(gap: Gap): number {
     const stakeholderCount = gap.estimatedImpact.affectedStakeholders.length;
-    return Math.min(1.0, stakeholderCount / 10); // Normalize to max 10 stakeholders
+    return Math.min(1.0, stakeholderCount / 10);
   }
 
   private calculateWeightedSeverityScore(
@@ -296,7 +284,6 @@ export class SeverityCalculatorService {
       factors.resourceRequirement * this.severityWeights.resourceRequirement +
       factors.stakeholderImpact * this.severityWeights.stakeholderImpact;
 
-    // Apply type and category multipliers
     const typeMultiplier = this.gapTypeMultipliers[gapType] || 0.5;
     const categoryMultiplier = this.categoryMultipliers[category] || 0.5;
 
@@ -304,118 +291,22 @@ export class SeverityCalculatorService {
   }
 
   private applyConfidenceAdjustment(score: number, confidence: number): number {
-    // Reduce severity for low-confidence gaps
-    const confidenceAdjustment = 0.8 + confidence * 0.2; // Range: 0.8 to 1.0
+    const confidenceAdjustment = 0.8 + confidence * 0.2;
     return score * confidenceAdjustment;
   }
 
   private convertScoreToSeverityLevel(score: number): SeverityLevel {
-    if (score >= 0.8) return 'critical';
-    if (score >= 0.6) return 'high';
-    if (score >= 0.4) return 'medium';
-    return 'low';
+    if (score >= 0.8) return SeverityLevel.CRITICAL;
+    if (score >= 0.6) return SeverityLevel.HIGH;
+    if (score >= 0.4) return SeverityLevel.MEDIUM;
+    return SeverityLevel.LOW;
   }
 
-  // ML-inspired methods
-  private extractMLFeatures(gap: Gap): number[] {
-    return [
-      Math.abs(gap.variance),
-      gap.rootCauses.length,
-      gap.affectedAreas.length,
-      gap.confidence,
-      this.mapImpactLevelToScore(gap.estimatedImpact.level),
-      gap.estimatedImpact.affectedStakeholders.length,
-      this.getTypeComplexity(gap.type),
-      this.getCategoryWeight(gap.category),
-    ];
-  }
-
-  private applyMLWeights(features: number[], historicalGaps?: Gap[]): number {
-    // Simplified ML approach - in real implementation, this would use trained weights
-    const defaultWeights = [0.2, 0.15, 0.1, 0.15, 0.2, 0.1, 0.05, 0.05];
-
-    if (historicalGaps && historicalGaps.length > 10) {
-      // Adjust weights based on historical patterns (simplified)
-      const adjustedWeights = this.adjustWeightsFromHistory(
-        defaultWeights,
-        historicalGaps
-      );
-      return features.reduce(
-        (sum, feature, index) => sum + feature * (adjustedWeights[index] || 0),
-        0
-      );
-    }
-
-    return features.reduce(
-      (sum, feature, index) => sum + feature * (defaultWeights[index] || 0),
-      0
-    );
-  }
-
-  private adjustWeightsFromHistory(
-    weights: number[],
-    _historicalGaps: Gap[]
-  ): number[] {
-    // Simplified weight adjustment based on historical gap patterns
-    // In real implementation, this would use proper ML techniques
-    return weights.map(weight => weight * (0.9 + Math.random() * 0.2)); // Simplified adjustment
-  }
-
-  private normalizeMLScore(score: number): number {
-    // Normalize ML score to 0-1 range
-    return Math.min(1.0, Math.max(0.0, score / 2)); // Assuming max possible score is ~2
-  }
-
-  // Risk-based calculation methods
-  private calculateEscalationProbability(gap: Gap): number {
-    // Probability that gap will escalate if not addressed
-    const varianceFactor = Math.min(1.0, Math.abs(gap.variance) * 1.5);
-    const complexityFactor = Math.min(1.0, gap.rootCauses.length / 3);
-    const urgencyFactor =
-      gap.estimatedImpact.timeframe === 'immediate' ? 1.0 : 0.5;
-
-    return (varianceFactor + complexityFactor + urgencyFactor) / 3;
-  }
-
-  private calculateImpactMagnitude(gap: Gap): number {
-    const impactScore = this.mapImpactLevelToScore(gap.estimatedImpact.level);
-    const stakeholderFactor = Math.min(
-      1.0,
-      gap.estimatedImpact.affectedStakeholders.length / 5
-    );
-    const areaFactor = Math.min(1.0, gap.affectedAreas.length / 3);
-
-    return (impactScore + stakeholderFactor + areaFactor) / 3;
-  }
-
-  private calculateTimeSensitivity(gap: Gap): number {
-    switch (gap.estimatedImpact.timeframe) {
-      case 'immediate':
-        return 1.0;
-      case 'short-term':
-        return 0.8;
-      case 'medium-term':
-        return 0.6;
-      case 'long-term':
-        return 0.4;
-      default:
-        return 0.5;
-    }
-  }
-
-  // Comparative calculation methods
   private calculateGapScore(gap: Gap): number {
     const factors = this.extractSeverityFactors(gap);
     return this.calculateWeightedSeverityScore(factors, gap.type, gap.category);
   }
 
-  private calculatePercentile(value: number, dataset: number[]): number {
-    const sorted = dataset.sort((a, b) => a - b);
-    const rank = sorted.filter(v => v <= value).length;
-    return rank / sorted.length;
-  }
-
-  // Ensemble calculation methods
   private calculateWeightedEnsemble(
     severities: SeverityLevel[],
     weights: number[]
@@ -426,19 +317,18 @@ export class SeverityCalculatorService {
       0
     );
     const normalizedSum = weightedSum / weights.reduce((sum, w) => sum + w, 0);
-
     return this.scoreToSeverity(normalizedSum);
   }
 
   private severityToScore(severity: SeverityLevel): number {
     switch (severity) {
-      case 'critical':
+      case SeverityLevel.CRITICAL:
         return 4;
-      case 'high':
+      case SeverityLevel.HIGH:
         return 3;
-      case 'medium':
+      case SeverityLevel.MEDIUM:
         return 2;
-      case 'low':
+      case SeverityLevel.LOW:
         return 1;
       default:
         return 2;
@@ -446,48 +336,39 @@ export class SeverityCalculatorService {
   }
 
   private scoreToSeverity(score: number): SeverityLevel {
-    if (score >= 3.5) return 'critical';
-    if (score >= 2.5) return 'high';
-    if (score >= 1.5) return 'medium';
-    return 'low';
+    if (score >= 3.5) return SeverityLevel.CRITICAL;
+    if (score >= 2.5) return SeverityLevel.HIGH;
+    if (score >= 1.5) return SeverityLevel.MEDIUM;
+    return SeverityLevel.LOW;
   }
 
-  // Helper methods
   private getTypeComplexity(type: GapType): number {
     const complexityMap: Record<GapType, number> = {
-      resource: 0.6,
-      process: 0.8,
-      communication: 0.7,
-      technology: 0.9,
-      culture: 1.0,
-      timeline: 0.5,
-      quality: 0.7,
-      budget: 0.4,
-      skill: 0.8,
-      governance: 0.9,
+      [GapType.RESOURCE]: 0.6,
+      [GapType.PROCESS]: 0.8,
+      [GapType.COMMUNICATION]: 0.7,
+      [GapType.TECHNOLOGY]: 0.9,
+      [GapType.CULTURE]: 1.0,
+      [GapType.TIMELINE]: 0.5,
+      [GapType.QUALITY]: 0.7,
+      [GapType.BUDGET]: 0.4,
+      [GapType.SKILL]: 0.8,
     };
-
     return complexityMap[type] || 0.5;
-  }
-
-  private getCategoryWeight(category: GapCategory): number {
-    return this.categoryMultipliers[category] || 0.5;
   }
 
   private getBaseResourceRequirement(type: GapType): number {
     const resourceMap: Record<GapType, number> = {
-      resource: 0.9,
-      process: 0.7,
-      communication: 0.5,
-      technology: 0.8,
-      culture: 0.9,
-      timeline: 0.6,
-      quality: 0.7,
-      budget: 0.8,
-      skill: 0.8,
-      governance: 0.6,
+      [GapType.RESOURCE]: 0.9,
+      [GapType.PROCESS]: 0.7,
+      [GapType.COMMUNICATION]: 0.5,
+      [GapType.TECHNOLOGY]: 0.8,
+      [GapType.CULTURE]: 0.9,
+      [GapType.TIMELINE]: 0.6,
+      [GapType.QUALITY]: 0.7,
+      [GapType.BUDGET]: 0.8,
+      [GapType.SKILL]: 0.8,
     };
-
     return resourceMap[type] || 0.5;
   }
 }
