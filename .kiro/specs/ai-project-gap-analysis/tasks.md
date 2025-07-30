@@ -102,20 +102,25 @@ The project has a basic NestJS backend structure with module directories created
   - [x] 4.1.c Implement gap severity calculation algorithms
   - _Requirements: 2.1, 2.2, 2.3_
 
-- [ ] 4.2 Build Gap Analysis DTOs and entities
-  - [ ] 4.2.a Create DTOs for gap analysis requests and responses
-  - [ ] 4.2.b Implement Gap entity with proper validation
-  - [ ] 4.2.c Define categorized gaps structure
+- [x] 4.2 Build Gap Analysis DTOs and entities
+  - [x] 4.2.a Create DTOs for gap analysis requests and responses
+  - [x] 4.2.b Implement Gap entity with proper validation
+  - [x] 4.2.c Define categorized gaps structure
   - _Requirements: 2.1, 2.2, 2.5_
 
-- [ ] 4.2.1 Complete GapAnalysisService refactoring to separate concerns (SRP)
+- [x] 4.2.1 Complete GapAnalysisService refactoring to separate concerns (SRP)
   - [x] 4.2.1.a Create GapRepository class for all database operations (CRUD) ✅ Already exists
   - [x] 4.2.1.b Move create, findAll, findOne, update, remove methods from GapAnalysisService to GapRepository ✅ Already done
   - [x] 4.2.1.c Inject GapRepository into GapAnalysisService for data access ✅ Already injected
-  - [ ] 4.2.1.d **PENDING**: Remove duplicate CRUD methods from GapAnalysisService (create, findAll, findOne, update, remove)
-  - [ ] 4.2.1.e **PENDING**: Update GapAnalysisController to use GapRepository directly for CRUD operations
-  - [ ] 4.2.1.f **PENDING**: Keep only business logic methods in GapAnalysisService (analyzeProject, identifyDiscrepancies, etc.)
-  - [ ] 4.2.1.g **PENDING**: Fix import path in GapRepository (should import DTOs from ../dto, not ./dto)
+  - [x] 4.2.1.d Remove duplicate CRUD methods from GapAnalysisService (create, findAll, findOne, update, remove) ✅ Done
+  - [x] 4.2.1.e Update GapAnalysisController to use GapRepository directly for CRUD operations ✅ Done
+  - [x] 4.2.1.f Keep only business logic methods in GapAnalysisService (analyzeProject, identifyDiscrepancies, etc.) ✅ Done
+  - [x] 4.2.1.g Fix import path in GapRepository (should import DTOs from ../dto, not ./dto) ✅ Done
+  - [x] 4.2.1.h Extract helper methods to GapAnalysisHelper class for better code organization ✅ Done
+  - [x] 4.2.1.i Fix type inconsistencies between database types and DTOs ✅ Done
+  - [x] 4.2.1.j Fix TypeScript and ESLint errors in helper classes ✅ Done
+  - [x] 4.2.1.k Refactor SeverityCalculatorService to reduce file size and improve maintainability ✅ Done
+  - [x] 4.2.1.l Create SeverityCalculationHelper for ML and risk calculation methods ✅ Done
   - _Requirements: Clean Architecture, Single Responsibility Principle_
 
 - [ ] 4.3 Implement Gap Analysis REST API
