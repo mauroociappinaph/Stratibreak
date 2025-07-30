@@ -81,6 +81,7 @@ async function main() {
   });
 
   // Create sample projects
+  // cspell:ignore ecommerce
   const ecommerceProject = await prisma.project.upsert({
     where: { id: 'sample-project-1' },
     update: {},
