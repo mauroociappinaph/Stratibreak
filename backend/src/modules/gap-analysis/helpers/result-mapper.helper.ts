@@ -11,6 +11,8 @@ import type {
   GapAnalysisResultDto,
   GapCategoryMetricsDto,
 } from '../dto/gap-analysis-result.dto';
+import type { SeverityAnalysisDto } from '../dto/severity-analysis.dto';
+import { SeverityAnalysisHelper } from './severity-analysis.helper';
 
 export class ResultMapperHelper {
   /**
@@ -208,5 +210,29 @@ export class ResultMapperHelper {
     return counts.reduce((min, current) =>
       current.count < min.count ? current : min
     ).category;
+  }
+
+  /**
+   * Maps service result to categorized gaps DTO format
+   */
+  static mapToCategorizedGapsDto(
+    result: GapAnalysisResult
+  ): CategorizedGapsDto {
+    return this.mapCategorizedGaps(result.identifiedGaps);
+  }
+
+  /**
+   * Maps service result to severity analysis DTO format
+   */
+  static mapToSeverityAnalysisDto(
+    result: GapAnalysisResult
+  ): SeverityAnalysisDto {
+    const allGaps = Object.values(result.identifiedGaps).flat();
+    return SeverityAnalysisHelper.mapToSeverityAnalysisDto(
+      result.projectId,
+      result.analysisTimestamp,
+      allGaps,
+      result.confidence
+    );
   }
 }

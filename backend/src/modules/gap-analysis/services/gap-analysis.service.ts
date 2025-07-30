@@ -1,13 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  CriticalityLevel,
-  GapCategory,
-  GapType,
-  ImpactLevel,
-  ImpactType,
-  RootCauseCategory,
-  SeverityLevel,
-} from '../../../types/database/gap.types';
+import { SeverityLevel } from '../../../types/database/gap.types';
 import type {
   ProjectGoal,
   ProjectState,
@@ -21,7 +13,7 @@ import type {
   ProjectData,
   Recommendation,
 } from '../../../types/services/gap-analysis.types';
-import { GapAnalysisHelper } from '../helpers/gap-analysis.helper';
+import { ProjectStateAnalyzerService } from './project-state-analyzer.service';
 import { SeverityCalculatorService } from './severity-calculator.service';
 
 @Injectable()
@@ -47,7 +39,10 @@ export class GapAnalysisService implements GapAnalysisEngine {
     maxGapsPerCategory: 10,
   };
 
-  constructor(private readonly severityCalculator: SeverityCalculatorService) {}
+  constructor(
+    private readonly severityCalculator: SeverityCalculatorService,
+    private readonly projectStateAnalyzerService: ProjectStateAnalyzerService
+  ) {}
 
   /**
    * Core gap analysis implementation - analyzes project data to identify gaps
@@ -115,110 +110,202 @@ export class GapAnalysisService implements GapAnalysisEngine {
   identifyDiscrepancies(current: ProjectState, targets: ProjectGoal[]): Gap[] {
     const gaps: Gap[] = [];
 
-    // Analyze each goal against current state
+    // Analyze each goal for gaps
     for (const goal of targets) {
-      const gap = this.analyzeGoalGap(current, goal);
-      if (gap) {
-        gaps.push(gap);
+      const gapData = this.projectStateAnalyzerService.analyzeGoalGap(
+        current,
+        goal
+      );
+      if (gapData) {
+        gaps.push(this.convertGapDataToGap(gapData));
       }
     }
 
     // Analyze system-level gaps
-    const systemGaps = this.analyzeSystemLevelGaps(current);
-    gaps.push(...systemGaps);
+    const systemGaps =
+      this.projectStateAnalyzerService.analyzeSystemLevelGaps(current);
+    for (const gapData of systemGaps) {
+      gaps.push(this.convertGapDataToGap(gapData));
+    }
 
     return gaps;
   }
 
   /**
-   * Analyzes a specific goal against current state to identify gaps
+   * Generates recommendations based on identified gaps
    */
-  private analyzeGoalGap(current: ProjectState, goal: ProjectGoal): Gap | null {
-    const currentValue = GapAnalysisHelper.extractCurrentValueForGoal(
-      current,
-      goal
-    );
-    const targetValue = GapAnalysisHelper.extractTargetValue(goal);
-    const variance = GapAnalysisHelper.calculateVariance(
-      currentValue,
-      targetValue
-    );
+  generateRecommendations(gaps: Gap[]): Recommendation[] {
+    const recommendations: Recommendation[] = [];
 
-    // Only create gap if variance is significant
-    if (Math.abs(variance) < 0.1) {
-      return null;
+    // Group gaps by severity
+    const criticalGaps = gaps.filter(
+      g => g.severity === SeverityLevel.CRITICAL
+    );
+    const highGaps = gaps.filter(g => g.severity === SeverityLevel.HIGH);
+
+    if (criticalGaps.length > 0) {
+      recommendations.push({
+        id: `rec-critical-${Date.now()}`,
+        gapId: criticalGaps[0]?.id || 'unknown',
+        title: 'Address Critical Gaps',
+        description: `Immediately address ${criticalGaps.length} critical gaps to prevent project failure`,
+        priority: 'urgent',
+        estimatedEffort: 40,
+        estimatedImpact: 0.9,
+        requiredResources: ['senior developer', 'project manager'],
+        timeline: '1-2 weeks',
+        dependencies: [],
+      });
     }
 
+    if (highGaps.length > 0) {
+      recommendations.push({
+        id: `rec-high-${Date.now()}`,
+        gapId: highGaps[0]?.id || 'unknown',
+        title: 'Prioritize High-Severity Gaps',
+        description: `Prioritize resolution of ${highGaps.length} high-severity gaps within 2 weeks`,
+        priority: 'high',
+        estimatedEffort: 24,
+        estimatedImpact: 0.7,
+        requiredResources: ['developer', 'analyst'],
+        timeline: '2-4 weeks',
+        dependencies: [],
+      });
+    }
+
+    // Type-specific recommendations
+    const resourceGaps = gaps.filter(g => g.type === 'RESOURCE');
+    if (resourceGaps.length > 0) {
+      recommendations.push({
+        id: `rec-resource-${Date.now()}`,
+        gapId: resourceGaps[0]?.id || 'unknown',
+        title: 'Review Resource Allocation',
+        description: `Review resource allocation - ${resourceGaps.length} resource gaps identified`,
+        priority: 'medium',
+        estimatedEffort: 16,
+        estimatedImpact: 0.6,
+        requiredResources: ['resource manager'],
+        timeline: '1-2 weeks',
+        dependencies: [],
+      });
+    }
+
+    const processGaps = gaps.filter(g => g.type === 'PROCESS');
+    if (processGaps.length > 0) {
+      recommendations.push({
+        id: `rec-process-${Date.now()}`,
+        gapId: processGaps[0]?.id || 'unknown',
+        title: 'Improve Process Documentation',
+        description: `Improve process documentation and workflows - ${processGaps.length} process gaps found`,
+        priority: 'medium',
+        estimatedEffort: 20,
+        estimatedImpact: 0.5,
+        requiredResources: ['process analyst', 'documentation specialist'],
+        timeline: '2-3 weeks',
+        dependencies: [],
+      });
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * Calculates overall health score based on gaps
+   */
+  calculateOverallHealthScore(gaps: Gap[]): number {
+    if (gaps.length === 0) return 1.0;
+
+    const severityWeights = {
+      [SeverityLevel.CRITICAL]: 0.1,
+      [SeverityLevel.HIGH]: 0.3,
+      [SeverityLevel.MEDIUM]: 0.6,
+      [SeverityLevel.LOW]: 0.9,
+    };
+
+    const totalWeight = gaps.reduce((sum, gap) => {
+      return sum + (severityWeights[gap.severity] || 0.5);
+    }, 0);
+
+    return Math.max(0, Math.min(1, totalWeight / gaps.length));
+  }
+
+  /**
+   * Calculates confidence in the analysis
+   */
+  calculateAnalysisConfidence(gaps: Gap[]): number {
+    if (gaps.length === 0) return 1.0;
+
+    const avgConfidence =
+      gaps.reduce((sum, gap) => {
+        return sum + (gap.confidence || 0.7);
+      }, 0) / gaps.length;
+
+    return Math.max(0, Math.min(1, avgConfidence));
+  }
+
+  /**
+   * Converts GapData from analyzer service to Gap interface
+   */
+  private convertGapDataToGap(gapData: {
+    id?: string;
+    projectId: string;
+    title: string;
+    description: string;
+    type: string;
+    category: string;
+    severity: SeverityLevel;
+    currentValue?: number | string;
+    targetValue?: unknown;
+    impact?: string;
+    confidence?: number;
+  }): Gap {
     return {
-      id: `gap-${goal.id}`,
-      projectId: goal.projectId,
-      type: GapAnalysisHelper.inferGapType(goal),
-      category: GapAnalysisHelper.inferGapCategory(goal),
-      title: `Gap in ${goal.title}`,
-      description: `Current: ${currentValue}, Target: ${targetValue}, Variance: ${variance.toFixed(2)}`,
-      currentValue,
-      targetValue,
-      variance,
-      severity: SeverityLevel.MEDIUM, // Will be calculated later
-      rootCauses: GapAnalysisHelper.identifyRootCauses(goal),
-      affectedAreas: GapAnalysisHelper.identifyAffectedAreas(goal),
-      estimatedImpact: GapAnalysisHelper.estimateImpact(goal, variance),
-      confidence: 0.8,
+      id: gapData.id || `gap-${Date.now()}`,
+      projectId: gapData.projectId,
+      title: gapData.title,
+      description: gapData.description,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      type: gapData.type as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      category: gapData.category as any,
+      severity: gapData.severity,
+      currentValue: gapData.currentValue || 0,
+      targetValue: (gapData.targetValue as string | number) || 0,
+      variance: this.calculateVariance(
+        gapData.currentValue,
+        gapData.targetValue
+      ),
+      confidence: gapData.confidence || 0.7,
+      rootCauses: [],
+      affectedAreas: [],
+      estimatedImpact: {
+        id: `impact-${Date.now()}`,
+        gapId: gapData.id || `gap-${Date.now()}`,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type: 'timeline' as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        level: 'medium' as any,
+        description: gapData.impact || 'Impact assessment pending',
+        timeframe: '1-4 weeks',
+        affectedStakeholders: ['project team'],
+      },
     };
   }
 
   /**
-   * Analyzes system-level gaps not tied to specific goals
+   * Calculates variance between current and target values
    */
-  private analyzeSystemLevelGaps(current: ProjectState): Gap[] {
-    const gaps: Gap[] = [];
+  private calculateVariance(
+    current: number | string | undefined,
+    target: unknown
+  ): number {
+    const currentNum =
+      typeof current === 'number' ? current : parseFloat(String(current)) || 0;
+    const targetNum =
+      typeof target === 'number' ? target : parseFloat(String(target)) || 0;
 
-    // Resource utilization gap
-    if (current.resources?.utilization && current.resources.utilization > 0.9) {
-      gaps.push({
-        id: `gap-resource-util-${Date.now()}`,
-        projectId: current.projectId,
-        type: GapType.RESOURCE,
-        category: GapCategory.OPERATIONAL,
-        title: 'Resource Over-utilization',
-        description: `Resources are over-utilized at ${(current.resources.utilization * 100).toFixed(1)}% affecting team sustainability`,
-        currentValue: current.resources.utilization,
-        targetValue: 0.8,
-        variance: current.resources.utilization - 0.8,
-        severity: SeverityLevel.HIGH,
-        rootCauses: [
-          {
-            id: `rc-${Date.now()}`,
-            gapId: '',
-            category: RootCauseCategory.MANAGEMENT,
-            description: 'Insufficient resource planning and allocation',
-            confidence: 0.8,
-            evidence: ['Resource utilization metrics', 'Team workload data'],
-            contributionWeight: 0.9,
-          },
-        ],
-        affectedAreas: [
-          {
-            id: `area-${Date.now()}`,
-            name: 'Team Productivity',
-            description: 'Team performance and sustainability',
-            criticality: CriticalityLevel.HIGH,
-          },
-        ],
-        estimatedImpact: {
-          id: `impact-${Date.now()}`,
-          gapId: '',
-          type: ImpactType.TEAM_MORALE,
-          level: ImpactLevel.HIGH,
-          description: 'Team burnout risk and decreased productivity',
-          timeframe: 'short-term',
-          affectedStakeholders: ['team-members', 'project-manager'],
-        },
-        confidence: 0.85,
-      });
-    }
-
-    return gaps;
+    if (targetNum === 0) return currentNum === 0 ? 0 : 1;
+    return Math.abs((currentNum - targetNum) / targetNum);
   }
 
   /**
@@ -302,41 +389,5 @@ export class GapAnalysisService implements GapAnalysisEngine {
       ...gap,
       severity: this.calculateGapSeverity(gap),
     }));
-  }
-
-  private generateRecommendations(gaps: Gap[]): Recommendation[] {
-    return gaps.map((gap, index) => ({
-      id: `rec-${index + 1}`,
-      gapId: gap.id || `gap-${index + 1}`,
-      title: `Address ${gap.title}`,
-      description: GapAnalysisHelper.generateRecommendationDescription(gap),
-      priority: GapAnalysisHelper.mapSeverityToPriority(gap.severity),
-      estimatedEffort: GapAnalysisHelper.estimateEffort(gap),
-      estimatedImpact: gap.confidence,
-      requiredResources: GapAnalysisHelper.identifyRequiredResources(gap),
-      timeline: GapAnalysisHelper.estimateTimeline(gap),
-      dependencies: [],
-    }));
-  }
-
-  private calculateOverallHealthScore(gaps: Gap[]): number {
-    if (gaps.length === 0) return 100;
-
-    const severityWeights = { CRITICAL: 0.4, HIGH: 0.3, MEDIUM: 0.2, LOW: 0.1 };
-    const totalWeight = gaps.reduce(
-      (sum, gap) => sum + severityWeights[gap.severity],
-      0
-    );
-    const maxPossibleWeight = gaps.length * 0.4; // If all were critical
-
-    return Math.max(0, 100 - (totalWeight / maxPossibleWeight) * 100);
-  }
-
-  private calculateAnalysisConfidence(gaps: Gap[]): number {
-    if (gaps.length === 0) return 1.0;
-
-    const avgConfidence =
-      gaps.reduce((sum, gap) => sum + gap.confidence, 0) / gaps.length;
-    return Math.min(1.0, avgConfidence);
   }
 }
