@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { GapType, SeverityLevel } from './create-gap-analysis.dto';
+import { GapType, SeverityLevel } from '../../../types/database/gap.types';
 
 export class RootCauseDto {
   @ApiProperty({
@@ -171,13 +171,13 @@ export class DetailedGapDto {
     description: 'Current value of the metric',
     example: 0.95,
   })
-  currentValue: any;
+  currentValue: number | string;
 
   @ApiProperty({
     description: 'Target value for the metric',
     example: 0.8,
   })
-  targetValue: any;
+  targetValue: number | string;
 
   @ApiProperty({
     description: 'Variance between current and target values',
@@ -191,6 +191,21 @@ export class DetailedGapDto {
     example: SeverityLevel.HIGH,
   })
   severity: SeverityLevel;
+
+  @ApiProperty({
+    description: 'Status of the gap',
+    example: 'identified',
+    enum: [
+      'identified',
+      'analyzing',
+      'planning',
+      'in_progress',
+      'resolved',
+      'closed',
+      'deferred',
+    ],
+  })
+  status: string;
 
   @ApiProperty({
     description: 'Root causes contributing to this gap',
@@ -217,6 +232,34 @@ export class DetailedGapDto {
     maximum: 1,
   })
   confidence: number;
+
+  @ApiProperty({
+    description: 'Priority level for addressing this gap',
+    example: 'high',
+    enum: ['low', 'medium', 'high', 'urgent'],
+  })
+  priority: string;
+
+  @ApiProperty({
+    description: 'Tags for categorization and filtering',
+    example: ['urgent', 'team-related'],
+    type: [String],
+  })
+  tags: string[];
+
+  @ApiProperty({
+    description: 'Timestamp when the gap was identified',
+    example: '2024-01-15T10:30:00Z',
+    type: 'string',
+    format: 'date-time',
+  })
+  identifiedAt: Date;
+
+  @ApiProperty({
+    description: 'User who identified the gap',
+    example: 'user_123456789',
+  })
+  identifiedBy: string;
 }
 
 export class RecommendationDto {
@@ -288,6 +331,41 @@ export class RecommendationDto {
   dependencies: string[];
 }
 
+export class GapCategoryMetricsDto {
+  @ApiProperty({
+    description: 'Total number of gaps in this category',
+    example: 5,
+  })
+  totalCount: number;
+
+  @ApiProperty({
+    description: 'Number of gaps by severity level',
+    example: { low: 1, medium: 2, high: 1, critical: 1 },
+  })
+  bySeverity: Record<string, number>;
+
+  @ApiProperty({
+    description: 'Average confidence level for gaps in this category',
+    example: 0.82,
+    minimum: 0,
+    maximum: 1,
+  })
+  averageConfidence: number;
+
+  @ApiProperty({
+    description: 'Most common root cause category',
+    example: 'process',
+  })
+  primaryRootCause: string;
+
+  @ApiProperty({
+    description: 'Trend compared to previous analysis',
+    example: 'increasing',
+    enum: ['increasing', 'decreasing', 'stable', 'new'],
+  })
+  trend: string;
+}
+
 export class CategorizedGapsDto {
   @ApiProperty({
     description: 'Resource-related gaps',
@@ -348,6 +426,29 @@ export class CategorizedGapsDto {
     type: [DetailedGapDto],
   })
   governance: DetailedGapDto[];
+
+  @ApiProperty({
+    description: 'Metrics for each gap category',
+    type: 'object',
+    additionalProperties: {
+      type: 'object',
+      $ref: '#/components/schemas/GapCategoryMetricsDto',
+    },
+  })
+  categoryMetrics: Record<string, GapCategoryMetricsDto>;
+
+  @ApiProperty({
+    description: 'Summary statistics across all categories',
+    type: 'object',
+  })
+  summary: {
+    totalGaps: number;
+    criticalGaps: number;
+    highPriorityGaps: number;
+    averageConfidence: number;
+    mostAffectedCategory: string;
+    leastAffectedCategory: string;
+  };
 }
 
 export class GapAnalysisResultDto {
