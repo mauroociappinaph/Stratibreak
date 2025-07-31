@@ -15,6 +15,9 @@ import {
   DataValidationHelper,
 } from '../helpers';
 import type { Connection } from '../helpers/connection-manager.helper';
+import { ConnectionLifecycleService } from './connection-lifecycle.service';
+import { ConnectionSetupService } from './connection-setup.service';
+import { SyncHistoryService } from './sync-history.service';
 
 @Injectable()
 export class IntegrationsCoreService
@@ -26,7 +29,12 @@ export class IntegrationsCoreService
   private readonly connectionFactory = new ConnectionFactoryHelper();
   private readonly healthCheckInterval = 5 * 60 * 1000; // 5 minutes
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly connectionLifecycle: ConnectionLifecycleService,
+    private readonly connectionSetup: ConnectionSetupService,
+    private readonly syncHistory: SyncHistoryService
+  ) {}
 
   async onModuleInit(): Promise<void> {
     this.logger.log('Initializing Integration Service...');
@@ -41,16 +49,17 @@ export class IntegrationsCoreService
     this.logger.log(`Attempting to connect to tool: ${toolType}`);
 
     try {
-      if (!this.isValidToolType(toolType)) {
+      if (!this.connectionSetup.isValidToolType(toolType)) {
         throw new Error(`Unsupported tool type: ${toolType}`);
       }
 
-      const connectionConfig = await this.createConnectionConfig(
-        toolType as IntegrationType,
-        credentials
-      );
+      const connectionConfig =
+        await this.connectionSetup.createConnectionConfig(
+          toolType as IntegrationType,
+          credentials
+        );
 
-      const testResult = await this.testToolConnection(
+      const testResult = await this.connectionSetup.testToolConnection(
         toolType as IntegrationType,
         connectionConfig
       );
@@ -100,7 +109,7 @@ export class IntegrationsCoreService
       connection.lastSync = new Date();
       connection.updatedAt = new Date();
 
-      await this.storeSyncResult(connectionId, syncResult);
+      await this.syncHistory.storeSyncResult(connectionId, syncResult);
 
       this.logger.log(
         `Sync completed for ${connectionId}: ${syncResult.recordsProcessed} records processed`
@@ -117,7 +126,7 @@ export class IntegrationsCoreService
         error instanceof Error ? error.message : 'Unknown error',
       ]);
 
-      await this.storeSyncResult(connectionId, errorResult);
+      await this.syncHistory.storeSyncResult(connectionId, errorResult);
       return errorResult;
     }
   }
@@ -143,6 +152,50 @@ export class IntegrationsCoreService
     externalData: unknown
   ): Promise<ValidationResult> {
     return this.dataValidator.validateDataConsistency(localData, externalData);
+  }
+
+  // Delegate connection management methods to specialized services
+  async disconnectTool(
+    connectionId: string
+  ): Promise<{ success: boolean; message: string }> {
+    return this.connectionLifecycle.disconnectTool(connectionId);
+  }
+
+  async reconnectTool(
+    connectionId: string,
+    credentials: Record<string, string>
+  ): Promise<{ success: boolean; message: string }> {
+    return this.connectionLifecycle.reconnectTool(connectionId, credentials);
+  }
+
+  async checkConnectionHealth(connectionId: string): Promise<{
+    status: string;
+    lastChecked: Date;
+    responseTime: number;
+    message: string;
+    details?: Record<string, unknown>;
+  }> {
+    return this.connectionLifecycle.checkConnectionHealth(connectionId);
+  }
+
+  async getSyncHistory(
+    connectionId: string,
+    options: { limit: number; offset: number }
+  ): Promise<{
+    history: Array<{
+      syncId: string;
+      startedAt: Date;
+      completedAt: Date;
+      status: string;
+      recordsProcessed: number;
+      recordsCreated: number;
+      recordsUpdated: number;
+      recordsSkipped: number;
+      errors: Array<{ message: string; recordId?: string }>;
+    }>;
+    totalCount: number;
+  }> {
+    return this.syncHistory.getSyncHistory(connectionId, options);
   }
 
   // Private helper methods
@@ -175,82 +228,6 @@ export class IntegrationsCoreService
     }, this.healthCheckInterval);
   }
 
-  private isValidToolType(toolType: string): boolean {
-    const validTypes = ['JIRA', 'ASANA', 'TRELLO', 'MONDAY', 'BITRIX24'];
-    return validTypes.includes(toolType.toUpperCase());
-  }
-
-  private async createConnectionConfig(
-    toolType: IntegrationType,
-    credentials: Record<string, string>
-  ): Promise<Record<string, unknown>> {
-    const baseConfig = { timeout: 30000, retryAttempts: 3 };
-
-    switch (toolType) {
-      case IntegrationType.JIRA:
-        return {
-          ...baseConfig,
-          baseUrl: credentials.baseUrl,
-          username: credentials.username,
-          apiToken: credentials.apiToken,
-        };
-      case IntegrationType.ASANA:
-        return { ...baseConfig, accessToken: credentials.accessToken };
-      case IntegrationType.TRELLO:
-        return {
-          ...baseConfig,
-          apiKey: credentials.apiKey,
-          token: credentials.token,
-        };
-      default:
-        return { ...baseConfig, ...credentials };
-    }
-  }
-
-  private async testToolConnection(
-    toolType: IntegrationType,
-    config: Record<string, unknown>
-  ): Promise<{ success: boolean; message: string }> {
-    this.logger.debug(`Testing connection to ${toolType}`);
-
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    if (!config || Object.keys(config).length === 0) {
-      return { success: false, message: 'Configuration is empty' };
-    }
-
-    const validationResult = this.validateToolCredentials(toolType, config);
-    return validationResult;
-  }
-
-  private validateToolCredentials(
-    toolType: IntegrationType,
-    config: Record<string, unknown>
-  ): { success: boolean; message: string } {
-    switch (toolType) {
-      case IntegrationType.JIRA:
-        if (!config.baseUrl || !config.username || !config.apiToken) {
-          return {
-            success: false,
-            message: 'Missing required JIRA credentials',
-          };
-        }
-        break;
-      case IntegrationType.ASANA:
-        if (!config.accessToken) {
-          return { success: false, message: 'Missing Asana access token' };
-        }
-        break;
-      case IntegrationType.TRELLO:
-        if (!config.apiKey || !config.token) {
-          return { success: false, message: 'Missing Trello API key or token' };
-        }
-        break;
-    }
-
-    return { success: true, message: 'Connection test successful' };
-  }
-
   private createFailedSyncResult(
     connectionId: string,
     errors: string[]
@@ -278,37 +255,6 @@ export class IntegrationsCoreService
     };
   }
 
-  private async storeSyncResult(
-    connectionId: string,
-    syncResult: SyncResult
-  ): Promise<void> {
-    try {
-      // Check if integration exists before storing sync result
-      const integration = await this.prisma.integration.findUnique({
-        where: { id: connectionId },
-      });
-
-      if (!integration) {
-        this.logger.warn(
-          `Cannot store sync result: Integration ${connectionId} not found`
-        );
-        return;
-      }
-
-      await this.prisma.syncResult.create({
-        data: {
-          integrationId: connectionId,
-          status: syncResult.status,
-          recordsSync: syncResult.recordsProcessed,
-          errorMessage: syncResult.errors.join('; ') || null,
-          syncDuration: 1000,
-        },
-      });
-    } catch (error) {
-      this.logger.error('Failed to store sync result:', error);
-    }
-  }
-
   private determineRecoveryAction(
     error: ServiceIntegrationError
   ): RecoveryAction {
@@ -325,253 +271,6 @@ export class IntegrationsCoreService
         return error.retryable
           ? { action: 'retry', delay: 10000, maxRetries: 2 }
           : { action: 'manual_intervention' };
-    }
-  }
-
-  // Additional Connection Management Methods
-
-  async disconnectTool(
-    connectionId: string
-  ): Promise<{ success: boolean; message: string }> {
-    this.logger.log(`Disconnecting tool with connection ID: ${connectionId}`);
-
-    try {
-      const connection = this.connectionManager.getConnection(connectionId);
-      if (!connection) {
-        return { success: false, message: 'Connection not found' };
-      }
-
-      // Perform any cleanup operations specific to the tool type
-      await this.performDisconnectionCleanup(connection);
-
-      // Remove from connection manager
-      this.connectionManager.removeConnection(connectionId);
-
-      this.logger.log(`Successfully disconnected tool: ${connectionId}`);
-      return { success: true, message: 'Tool disconnected successfully' };
-    } catch (error) {
-      this.logger.error(`Failed to disconnect tool ${connectionId}:`, error);
-      return {
-        success: false,
-        message:
-          error instanceof Error ? error.message : 'Disconnection failed',
-      };
-    }
-  }
-
-  async reconnectTool(
-    connectionId: string,
-    credentials: Record<string, string>
-  ): Promise<{ success: boolean; message: string }> {
-    this.logger.log(`Reconnecting tool with connection ID: ${connectionId}`);
-
-    try {
-      // Get the existing connection to determine tool type
-      const existingConnection =
-        this.connectionManager.getConnection(connectionId);
-      if (!existingConnection) {
-        return { success: false, message: 'Original connection not found' };
-      }
-
-      // Test the connection with new/existing credentials
-      const testResult = await this.testToolConnection(
-        existingConnection.toolType,
-        credentials
-      );
-
-      if (!testResult.success) {
-        return { success: false, message: testResult.message };
-      }
-
-      // Update the connection configuration
-      const updatedConfig = await this.createConnectionConfig(
-        existingConnection.toolType,
-        credentials
-      );
-
-      const updatedConnection = {
-        ...existingConnection,
-        config: updatedConfig,
-        status: 'connected' as const,
-        lastSync: new Date(),
-        updatedAt: new Date(),
-      };
-
-      this.connectionManager.setConnection(connectionId, updatedConnection);
-
-      this.logger.log(`Successfully reconnected tool: ${connectionId}`);
-      return { success: true, message: 'Tool reconnected successfully' };
-    } catch (error) {
-      this.logger.error(`Failed to reconnect tool ${connectionId}:`, error);
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : 'Reconnection failed',
-      };
-    }
-  }
-
-  async checkConnectionHealth(connectionId: string): Promise<{
-    status: string;
-    lastChecked: Date;
-    responseTime: number;
-    message: string;
-    details?: Record<string, unknown>;
-  }> {
-    this.logger.debug(`Checking health for connection: ${connectionId}`);
-
-    const connection = this.connectionManager.getConnection(connectionId);
-    if (!connection) {
-      return {
-        status: 'unhealthy',
-        lastChecked: new Date(),
-        responseTime: -1,
-        message: 'Connection not found',
-      };
-    }
-
-    try {
-      const startTime = Date.now();
-      const healthResult = await this.performHealthCheck(connection);
-      const responseTime = Date.now() - startTime;
-
-      return {
-        status: healthResult.healthy ? 'healthy' : 'unhealthy',
-        lastChecked: new Date(),
-        responseTime,
-        message: healthResult.message,
-        ...(healthResult.details && { details: healthResult.details }),
-      };
-    } catch (error) {
-      return {
-        status: 'unhealthy',
-        lastChecked: new Date(),
-        responseTime: -1,
-        message: error instanceof Error ? error.message : 'Health check failed',
-      };
-    }
-  }
-
-  async getSyncHistory(
-    connectionId: string,
-    options: { limit: number; offset: number }
-  ): Promise<{
-    history: Array<{
-      syncId: string;
-      startedAt: Date;
-      completedAt: Date;
-      status: string;
-      recordsProcessed: number;
-      recordsCreated: number;
-      recordsUpdated: number;
-      recordsSkipped: number;
-      errors: Array<{ message: string; recordId?: string }>;
-    }>;
-    totalCount: number;
-  }> {
-    this.logger.debug(`Getting sync history for connection: ${connectionId}`);
-
-    try {
-      const syncResults = await this.prisma.syncResult.findMany({
-        where: { integrationId: connectionId },
-        orderBy: { createdAt: 'desc' },
-        take: options.limit,
-        skip: options.offset,
-      });
-
-      const totalCount = await this.prisma.syncResult.count({
-        where: { integrationId: connectionId },
-      });
-
-      const history = syncResults.map(result => ({
-        syncId: result.id,
-        startedAt: result.createdAt,
-        completedAt: new Date(
-          result.createdAt.getTime() + (result.syncDuration || 1000)
-        ),
-        status: result.status,
-        recordsProcessed: result.recordsSync || 0,
-        recordsCreated: Math.floor((result.recordsSync || 0) * 0.3), // Estimated
-        recordsUpdated: Math.floor((result.recordsSync || 0) * 0.6), // Estimated
-        recordsSkipped: Math.floor((result.recordsSync || 0) * 0.1), // Estimated
-        errors: result.errorMessage ? [{ message: result.errorMessage }] : [],
-      }));
-
-      return { history, totalCount };
-    } catch (error) {
-      this.logger.error(
-        `Failed to get sync history for ${connectionId}:`,
-        error
-      );
-      return { history: [], totalCount: 0 };
-    }
-  }
-
-  private async performDisconnectionCleanup(
-    connection: Connection
-  ): Promise<void> {
-    // Perform tool-specific cleanup operations
-    switch (connection.toolType) {
-      case IntegrationType.JIRA:
-        // Clean up any JIRA-specific resources
-        this.logger.debug('Performing JIRA disconnection cleanup');
-        break;
-      case IntegrationType.ASANA:
-        // Clean up any Asana-specific resources
-        this.logger.debug('Performing Asana disconnection cleanup');
-        break;
-      case IntegrationType.TRELLO:
-        // Clean up any Trello-specific resources
-        this.logger.debug('Performing Trello disconnection cleanup');
-        break;
-      default:
-        this.logger.debug(
-          `Performing generic disconnection cleanup for ${connection.toolType}`
-        );
-    }
-
-    // Simulate cleanup delay
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-
-  private async performHealthCheck(connection: Connection): Promise<{
-    healthy: boolean;
-    message: string;
-    details?: Record<string, unknown>;
-  }> {
-    try {
-      // Simulate health check based on connection status
-      if (connection.status === 'error') {
-        return {
-          healthy: false,
-          message: 'Connection is in error state',
-          details: { lastError: 'Previous sync failed' },
-        };
-      }
-
-      if (connection.status === 'syncing') {
-        return {
-          healthy: true,
-          message: 'Connection is currently syncing',
-          details: { currentOperation: 'sync' },
-        };
-      }
-
-      // Simulate a basic connectivity test
-      await new Promise(resolve => setTimeout(resolve, 50));
-
-      return {
-        healthy: true,
-        message: 'Connection is healthy',
-        details: {
-          lastSync: connection.lastSync,
-          toolType: connection.toolType,
-        },
-      };
-    } catch (error) {
-      return {
-        healthy: false,
-        message: error instanceof Error ? error.message : 'Health check failed',
-      };
     }
   }
 }
