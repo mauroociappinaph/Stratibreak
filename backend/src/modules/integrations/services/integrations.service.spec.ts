@@ -18,6 +18,18 @@ describe('IntegrationsService', () => {
     syncResult: {
       create: jest.fn(),
     },
+    tenant: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+    },
+    user: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+    },
+    project: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+    },
   };
 
   const mockCoreService = {
@@ -228,15 +240,50 @@ describe('IntegrationsService', () => {
         config: { baseUrl: 'https://test.com' },
       };
 
+      const mockTenant = {
+        id: 'default-tenant',
+        organizationName: 'Test Organization',
+        dataEncryptionKey: 'test-key',
+      };
+
+      const mockUser = {
+        id: 'user-1',
+        email: 'system@test.com',
+        username: 'system',
+        password: 'test-password',
+        firstName: 'System',
+        lastName: 'User',
+        role: 'ADMIN',
+        tenantId: 'default-tenant',
+      };
+
+      const mockProject = {
+        id: 'project-1',
+        name: 'Test Project',
+        description: 'Test project for integration testing',
+        status: 'ACTIVE',
+        startDate: new Date(),
+        endDate: new Date(),
+        userId: 'user-1',
+        tenantId: 'default-tenant',
+      };
+
       const mockIntegration = {
         id: 'integration-1',
-        ...createDto,
+        name: 'Test Integration',
         type: 'JIRA',
+        projectId: 'project-1',
+        description: 'Test description',
+        config: { baseUrl: 'https://test.com' },
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
+      // Setup mocks
+      mockPrismaService.tenant.findUnique.mockResolvedValue(mockTenant);
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.project.findUnique.mockResolvedValue(mockProject);
       mockPrismaService.integration.create.mockResolvedValue(mockIntegration);
 
       const result = await service.create(createDto);
