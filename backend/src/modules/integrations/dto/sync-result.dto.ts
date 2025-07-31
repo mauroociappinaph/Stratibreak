@@ -1,11 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsDate, IsEnum, IsNumber, IsString } from 'class-validator';
+import { IsArray, IsDate, IsNumber, IsString } from 'class-validator';
 
-export enum SyncStatus {
-  SUCCESS = 'success',
-  FAILED = 'failed',
-  PARTIAL = 'partial',
-}
+export type SyncStatus = 'success' | 'failed' | 'partial';
 
 export class SyncResultDto {
   @ApiProperty({
@@ -17,10 +13,10 @@ export class SyncResultDto {
 
   @ApiProperty({
     description: 'Status of the sync operation',
-    enum: SyncStatus,
-    example: SyncStatus.SUCCESS,
+    enum: ['success', 'failed', 'partial'],
+    example: 'success',
   })
-  @IsEnum(SyncStatus)
+  @IsString()
   status: SyncStatus;
 
   @ApiProperty({
