@@ -111,10 +111,29 @@ export class IntegrationsController {
   async connectTool(
     @Body() connectToolDto: ConnectToolDto
   ): Promise<ConnectionResponseDto> {
-    return this.integrationsService.connectToTool(
+    const result = await this.integrationsService.connectToTool(
       connectToolDto.toolType,
       connectToolDto.credentials
     );
+
+    // Map the service response to DTO
+    return {
+      connectionId: result.connectionId,
+      status: result.status,
+      toolType: result.toolType,
+      name: result.name,
+      lastSync: result.lastSync || new Date(),
+      nextSync: result.nextSync || new Date(),
+      syncStatus: result.syncStatus,
+      recordsCount: result.recordsCount,
+      configuration: {
+        syncFrequency: result.configuration.syncFrequency,
+        dataMapping: result.configuration.dataMapping,
+        filters: result.configuration.filters as Record<string, unknown>,
+      },
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
+    };
   }
 
   @Post(':connectionId/sync')
