@@ -3,6 +3,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/common/services';
+import { IntegrationEntity } from '../src/modules/integrations/entities';
+
+// Type alias for test responses
+type TestIntegrationResponse = IntegrationEntity;
 
 describe('External Service Integrations (e2e)', () => {
   let app: INestApplication;
@@ -273,7 +277,7 @@ describe('External Service Integrations (e2e)', () => {
         .expect(200)
         .expect(res => {
           expect(Array.isArray(res.body)).toBe(true);
-          res.body.forEach((integration: unknown) => {
+          res.body.forEach((integration: TestIntegrationResponse) => {
             expect(integration.type).toBe('JIRA');
             expect(integration.projectId).toBe('specific-project-123');
           });
