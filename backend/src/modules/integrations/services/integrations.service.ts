@@ -185,8 +185,13 @@ export class IntegrationsService implements IIntegrationService {
       });
 
       return this.mapToEntity(integration);
-    } catch (error) {
-      if (error.code === 'P2025') {
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code === 'P2025'
+      ) {
         throw new Error(`Integration with ID ${id} not found`);
       }
       throw error;
@@ -201,8 +206,13 @@ export class IntegrationsService implements IIntegrationService {
       await this.prisma.integration.delete({
         where: { id },
       });
-    } catch (error) {
-      if (error.code === 'P2025') {
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code === 'P2025'
+      ) {
         throw new Error(`Integration with ID ${id} not found`);
       }
       throw error;
@@ -262,6 +272,18 @@ export class IntegrationsService implements IIntegrationService {
       return { success: false, message: 'Configuration is empty' };
     }
 
+    const validationResult = this.validateToolCredentials(toolType, config);
+    if (!validationResult.success) {
+      return validationResult;
+    }
+
+    return { success: true, message: 'Connection test successful' };
+  }
+
+  private validateToolCredentials(
+    toolType: IntegrationType,
+    config: Record<string, unknown>
+  ): { success: boolean; message: string } {
     switch (toolType) {
       case IntegrationType.JIRA:
         if (!config.baseUrl || !config.username || !config.apiToken) {
@@ -283,7 +305,7 @@ export class IntegrationsService implements IIntegrationService {
         break;
     }
 
-    return { success: true, message: 'Connection test successful' };
+    return { success: true, message: 'Valid credentials' };
   }
 
   private mapDtoTypeToDbType(dtoType: DtoIntegrationType): IntegrationType {
