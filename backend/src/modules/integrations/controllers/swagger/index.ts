@@ -1,4 +1,7 @@
 export { AdvancedSwaggerDocs } from './advanced.swagger';
+export { ConnectionLifecycleSwaggerDocs } from './connection-lifecycle.swagger';
+export { ConnectionManagementSwaggerDocs } from './connection-management.swagger';
+export { ConnectionMonitoringSwaggerDocs } from './connection-monitoring.swagger';
 export { CreateSwaggerDocs } from './create.swagger';
 export { FindAllSwaggerDocs } from './find-all.swagger';
 export { FindOneSwaggerDocs } from './find-one.swagger';

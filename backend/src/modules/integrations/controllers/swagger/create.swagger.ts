@@ -12,10 +12,15 @@ export const CreateSwaggerDocs = {
     summary: 'Create a new integration',
     description: `Creates a new integration configuration for connecting to external tools. This endpoint:
     • Registers a new integration with specified tool type and configuration
-    • Validates integration parameters and project association
-    • Sets up initial configuration for the integration
+    • Validates integration parameters and project association using internal validation
+    • Sets up initial configuration with tool-specific defaults (timeout: 30000ms, retryAttempts: 3)
     • Returns the created integration entity with unique ID
-    • Prepares the integration for connection establishment`,
+    • Prepares the integration for connection establishment via ConnectionSetupService
+    • Supports all major project management tools with proper configuration templates
+
+    **Service Architecture**: The integration creation process uses standardized
+    configuration templates that are compatible with the ConnectionSetupService
+    for subsequent connection establishment and testing.`,
   }),
   body: ApiBody({
     description: 'Integration configuration data',

@@ -12,6 +12,41 @@ import { IntegrationEntity } from '../entities';
 import { CrudSwaggerDocs } from './integrations-crud.swagger';
 import { AdvancedSwaggerDocs } from './swagger/advanced.swagger';
 
+/**
+ * Comprehensive Swagger documentation for the Integrations API
+ *
+ * Service Architecture Overview:
+ * ============================
+ *
+ * 1. IntegrationsService (Main Orchestrator)
+ *    - Handles CRUD operations for integrations
+ *    - Orchestrates calls to specialized services
+ *    - Manages database operations through Prisma
+ *
+ * 2. IntegrationsCoreService (Core Logic)
+ *    - Handles tool connectivity and validation
+ *    - Manages connection pooling and configuration
+ *    - Coordinates with specialized services for complex operations
+ *
+ * 3. ConnectionLifecycleService (Connection Management)
+ *    - Specializes in connection state transitions
+ *    - Handles connect/disconnect/reconnect operations
+ *    - Performs tool-specific cleanup and health checks
+ *
+ * 4. SyncHistoryService (Data Synchronization)
+ *    - Manages sync operation history and statistics
+ *    - Stores and retrieves sync results
+ *    - Provides sync analytics and reporting
+ *
+ * API Endpoint Categories:
+ * =======================
+ * - CRUD Operations: Basic integration management
+ * - Connection Management: Tool connectivity and status
+ * - Lifecycle Operations: Connect/disconnect/reconnect workflows
+ * - Monitoring: Health checks and sync history
+ * - Configuration: Connection settings and data mapping
+ */
+
 // Swagger decorators for the integrations controller methods
 export const SwaggerDocs = {
   // Re-export CRUD operations
@@ -21,11 +56,16 @@ export const SwaggerDocs = {
     operation: ApiOperation({
       summary: 'Connect to external tool',
       description: `Establishes a connection to an external project management or collaboration tool. This endpoint:
-      • Validates tool type and credentials
-      • Tests the connection to ensure it's working
-      • Creates a connection pool entry for ongoing sync
-      • Returns connection status and configuration
-      • Supports multiple tool types (Jira, Asana, Trello, Monday.com, Bitrix24)`,
+      • Validates tool type using ConnectionSetupService.isValidToolType()
+      • Creates tool-specific connection configuration with proper timeouts and retry settings
+      • Tests the connection to ensure credentials are valid and tool is accessible
+      • Creates a connection pool entry for ongoing sync operations
+      • Returns connection status and configuration details
+      • Supports multiple tool types (Jira, Asana, Trello, Monday.com, Bitrix24)
+
+      **Service Architecture**: This operation leverages the ConnectionSetupService
+      for tool validation, configuration creation, and connection testing before
+      establishing the final connection through the IntegrationsCoreService.`,
     }),
     body: ApiBody({
       description: 'Tool connection configuration',

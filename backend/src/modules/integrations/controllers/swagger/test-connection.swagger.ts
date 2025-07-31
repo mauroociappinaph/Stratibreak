@@ -9,7 +9,15 @@ import {
 export const TestConnectionSwaggerDocs = {
   operation: ApiOperation({
     summary: 'Test integration connection',
-    description: `Tests the connection to an external tool using the integration configuration.`,
+    description: `Tests the connection to an external tool using the integration configuration. This endpoint:
+    • Validates the integration configuration and credentials
+    • Uses ConnectionSetupService to create tool-specific connection config
+    • Performs live connectivity test to the external tool
+    • Validates tool-specific credential requirements (API tokens, URLs, etc.)
+    • Returns detailed success/failure information with specific error messages
+
+    **Service Architecture**: This operation uses the ConnectionSetupService internally
+    to validate tool types, create connection configurations, and test tool connectivity.`,
   }),
   param: ApiParam({
     name: 'id',
