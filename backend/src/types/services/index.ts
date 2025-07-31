@@ -629,3 +629,6 @@ export interface MetricTrend {
 
 // Re-export database types with aliases to avoid conflicts
 export type { SeverityLevel, TrendDirection };
+
+// Re-export prediction service types
+export * from './prediction.types';
