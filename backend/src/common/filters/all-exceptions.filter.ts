@@ -25,6 +25,16 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message = exception.message;
     } else if (exception instanceof Error) {
       message = exception.message;
+
+      // Handle specific error patterns
+      if (message.includes('not found')) {
+        status = HttpStatus.NOT_FOUND;
+      } else if (
+        message.includes('validation') ||
+        message.includes('invalid')
+      ) {
+        status = HttpStatus.BAD_REQUEST;
+      }
     }
 
     const errorResponse = {
