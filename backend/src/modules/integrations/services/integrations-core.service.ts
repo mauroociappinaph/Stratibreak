@@ -9,7 +9,12 @@ import type {
 } from '@/types/services';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { IntegrationStatus, IntegrationType } from '@prisma/client';
-import { ConnectionManagerHelper, DataValidationHelper } from '../helpers';
+import {
+  ConnectionFactoryHelper,
+  ConnectionManagerHelper,
+  DataValidationHelper,
+} from '../helpers';
+import type { Connection } from '../helpers/connection-manager.helper';
 
 @Injectable()
 export class IntegrationsCoreService
@@ -18,6 +23,7 @@ export class IntegrationsCoreService
   private readonly logger = new Logger(IntegrationsCoreService.name);
   private readonly connectionManager = new ConnectionManagerHelper();
   private readonly dataValidator = new DataValidationHelper();
+  private readonly connectionFactory = new ConnectionFactoryHelper();
   private readonly healthCheckInterval = 5 * 60 * 1000; // 5 minutes
 
   constructor(private readonly prisma: PrismaService) {}
@@ -50,12 +56,12 @@ export class IntegrationsCoreService
       );
 
       if (!testResult.success) {
-        return this.createFailedConnectionResponse(toolType);
+        return this.connectionFactory.createFailedConnectionResponse(toolType);
       }
 
       const connectionId =
         this.connectionManager.generateConnectionId(toolType);
-      const connection = this.createConnection(
+      const connection = this.connectionFactory.createConnection(
         connectionId,
         toolType as IntegrationType,
         connectionConfig
@@ -67,10 +73,10 @@ export class IntegrationsCoreService
         `Successfully connected to ${toolType} with ID: ${connectionId}`
       );
 
-      return this.createSuccessConnectionResponse(connection);
+      return this.connectionFactory.createSuccessConnectionResponse(connection);
     } catch (error) {
       this.logger.error(`Failed to connect to ${toolType}:`, error);
-      return this.createFailedConnectionResponse(toolType);
+      return this.connectionFactory.createFailedConnectionResponse(toolType);
     }
   }
 
@@ -150,7 +156,8 @@ export class IntegrationsCoreService
       });
 
       for (const integration of activeIntegrations) {
-        const connection = this.createConnectionFromIntegration(integration);
+        const connection =
+          this.connectionFactory.createConnectionFromIntegration(integration);
         this.connectionManager.setConnection(integration.id, connection);
       }
 
@@ -244,72 +251,6 @@ export class IntegrationsCoreService
     return { success: true, message: 'Connection test successful' };
   }
 
-  private createConnection(
-    connectionId: string,
-    toolType: IntegrationType,
-    config: Record<string, unknown>
-  ) {
-    return {
-      connectionId,
-      toolType,
-      status: 'connected' as const,
-      config,
-      lastSync: new Date(),
-      syncFrequency: 15,
-      dataMapping: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-  }
-
-  private createConnectionFromIntegration(integration: any) {
-    return {
-      connectionId: integration.id,
-      toolType: integration.type,
-      status: 'connected' as const,
-      config: integration.config as Record<string, unknown>,
-      lastSync: integration.lastSyncAt || new Date(),
-      syncFrequency: integration.syncInterval || 15,
-      dataMapping: [],
-      createdAt: integration.createdAt,
-      updatedAt: integration.updatedAt,
-    };
-  }
-
-  private createFailedConnectionResponse(toolType: string): ConnectionResponse {
-    return {
-      connectionId: '',
-      status: 'failed',
-      toolType,
-      name: toolType,
-      syncStatus: 'error',
-      recordsCount: 0,
-      configuration: { syncFrequency: 15, dataMapping: [], filters: {} },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-  }
-
-  private createSuccessConnectionResponse(connection: any): ConnectionResponse {
-    return {
-      connectionId: connection.connectionId,
-      status: 'connected',
-      toolType: connection.toolType,
-      name: connection.toolType,
-      lastSync: connection.lastSync,
-      nextSync: new Date(Date.now() + connection.syncFrequency * 60 * 1000),
-      syncStatus: 'idle',
-      recordsCount: 0,
-      configuration: {
-        syncFrequency: connection.syncFrequency,
-        dataMapping: [],
-        filters: {},
-      },
-      createdAt: connection.createdAt,
-      updatedAt: connection.updatedAt,
-    };
-  }
-
   private createFailedSyncResult(
     connectionId: string,
     errors: string[]
@@ -323,7 +264,7 @@ export class IntegrationsCoreService
     };
   }
 
-  private async performToolSync(connection: any): Promise<SyncResult> {
+  private async performToolSync(connection: Connection): Promise<SyncResult> {
     this.logger.debug(`Performing sync for ${connection.toolType}`);
 
     await new Promise(resolve => setTimeout(resolve, 200));
@@ -342,6 +283,18 @@ export class IntegrationsCoreService
     syncResult: SyncResult
   ): Promise<void> {
     try {
+      // Check if integration exists before storing sync result
+      const integration = await this.prisma.integration.findUnique({
+        where: { id: connectionId },
+      });
+
+      if (!integration) {
+        this.logger.warn(
+          `Cannot store sync result: Integration ${connectionId} not found`
+        );
+        return;
+      }
+
       await this.prisma.syncResult.create({
         data: {
           integrationId: connectionId,
