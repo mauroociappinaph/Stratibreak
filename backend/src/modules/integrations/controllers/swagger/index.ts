@@ -1,3 +1,4 @@
+export { AdvancedSwaggerDocs } from './advanced.swagger';
 export { CreateSwaggerDocs } from './create.swagger';
 export { FindAllSwaggerDocs } from './find-all.swagger';
 export { FindOneSwaggerDocs } from './find-one.swagger';

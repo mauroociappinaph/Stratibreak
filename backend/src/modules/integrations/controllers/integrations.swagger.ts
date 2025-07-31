@@ -10,6 +10,7 @@ import {
 import { ConnectionResponseDto, SyncResultDto } from '../dto';
 import { IntegrationEntity } from '../entities';
 import { CrudSwaggerDocs } from './integrations-crud.swagger';
+import { AdvancedSwaggerDocs } from './swagger/advanced.swagger';
 
 // Swagger decorators for the integrations controller methods
 export const SwaggerDocs = {
@@ -171,4 +172,7 @@ export const SwaggerDocs = {
       }),
     },
   },
+
+  // Connection Management Swagger Documentation
+  ...AdvancedSwaggerDocs,
 };
