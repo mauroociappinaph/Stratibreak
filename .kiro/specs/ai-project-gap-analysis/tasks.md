@@ -145,6 +145,11 @@ The project has a basic NestJS backend structure with module directories created
   - [x] 5.1.a Implement IntegrationService with connection management
   - [x] 5.1.b Create base integration adapter interface
   - [x] 5.1.c Setup connection status monitoring
+  - [x] 5.1.d Update OpenAPI documentation for ConnectionSetupService integration
+  - [x] 5.1.e Refactor IntegrationsService to use service delegation pattern
+  - [x] 5.1.f Create specialized services (ConnectionManagementService, IntegrationCrudService, etc.)
+  - [x] 5.1.g Update OpenAPI documentation to reflect service architecture changes
+  - [x] 5.1.h Create comprehensive service delegation documentation
   - _Requirements: 6.1, 6.2_
 
 - [x] 5.2 Implement Jira integration adapter
@@ -153,10 +158,10 @@ The project has a basic NestJS backend structure with module directories created
   - [x] 5.2.c Setup authentication and error handling for Jira
   - _Requirements: 6.1, 6.2, 6.3_
 
-- [ ] 5.3 Build Integration REST API
+- [x] 5.3 Build Integration REST API
   - [x] 5.3.a Create IntegrationController for managing connections
-  - [ ] 5.3.b Implement endpoints for connecting/disconnecting tools
-  - [ ] 5.3.c Add data synchronization endpoints
+  - [x] 5.3.b Implement endpoints for connecting/disconnecting tools
+  - [x] 5.3.c Add data synchronization endpoints
   - _Requirements: 6.1, 6.2, 6.4_
 
 - [ ] 6. Implement basic Predictions module
