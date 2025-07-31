@@ -183,7 +183,7 @@ The project has a basic NestJS backend structure with module directories created
   - _Requirements: 3.1, 3.2, 3.4_
 
 - [ ] 6.3 Implement Predictions REST API
-  - [ ] 6.3.a Create PredictionsController with prediction endpoints
+  - [x] 6.3.a Create PredictionsController with prediction endpoints
   - [ ] 6.3.b Implement risk assessment and early warning endpoints
   - [ ] 6.3.c Add prediction history and trend analysis endpoints
   - _Requirements: 3.1, 3.2, 3.5_
