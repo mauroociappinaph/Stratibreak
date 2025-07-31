@@ -1,121 +1,299 @@
-# Integrations API Swagger Documentation Update
+# Swagger Documentation Update Summary
 
 ## Overview
 
-Updated the OpenAPI documentation for the integrations module to properly reflect all endpoints, including the PUT endpoints that use the `Put` decorator imported in the controller.
+This document summarizes the comprehensive updates made to the OpenAPI/Swagger documentation following the service delegation refactoring of the integrations module. The documentation now accurately reflects the new service architecture and provides detailed service flow information.
 
-## Changes Made
+## Documentation Structure Updates
 
-### 1. File Structure Reorganization
+### Service Architecture Documentation
 
-- **Created**: `backend/src/modules/integrations/controllers/swagger/advanced.swagger.ts`
-- **Updated**: `backend/src/modules/integrations/controllers/integrations.swagger.ts`
-- **Updated**: `backend/src/modules/integrations/controllers/swagger/index.ts`
+All swagger documentation files now include comprehensive service architecture information:
 
-### 2. Documentation Split
+```typescript
+/**
+ * Service Architecture:
+ * IntegrationsService (Main Orchestrator)
+ * ├── IntegrationsCoreService (Core integration logic)
+ * ├── IntegrationCrudService (CRUD operations)
+ * ├── ConnectionManagementService (Connection management)
+ * └── IntegrationTestingService (Connection testing)
+ */
+```
 
-The large swagger documentation file was split to improve maintainability:
+### Enhanced Operation Descriptions
 
-- **Main file**: Contains core integration operations (connect, sync, findByTypeAndProject)
-- **Advanced file**: Contains connection management operations (getAllConnections, updateConnectionStatus, etc.)
+Every API operation now includes:
 
-### 3. PUT Endpoints Documentation
+- **Service Flow**: Step-by-step service delegation path
+- **Service Responsibilities**: What each service handles
+- **Architecture Context**: How the operation fits in the overall architecture
+- **Error Handling**: Service-specific error scenarios
 
-The following PUT endpoints are fully documented:
+## Updated Documentation Files
 
-#### PUT `/connections/:connectionId/status`
+### 1. advanced.swagger.ts
 
-- **Purpose**: Update connection status
-- **Parameters**: connectionId (path parameter)
-- **Body**: `{ status: string, reason?: string }`
-- **Responses**: 200 (success), 404 (not found), 500 (server error)
+**Changes Made**:
 
-#### PUT `/connections/:connectionId/configuration`
+- Added comprehensive service architecture overview
+- Enhanced documentation structure explanation
+- Included service responsibility matrix
+- Added architecture benefits description
 
-- **Purpose**: Update connection configuration
-- **Parameters**: connectionId (path parameter)
-- **Body**: `{ syncFrequency?: number, dataMapping?: unknown[], filters?: Record<string, unknown> }`
-- **Responses**: 200 (success), 404 (not found), 500 (server error)
+**Key Additions**:
 
-### 4. Complete Endpoint Coverage
+```typescript
+/**
+ * Service Responsibilities:
+ * - IntegrationsService: API request coordination and response formatting
+ * - IntegrationsCoreService: Tool connectivity, data sync, and failure handling
+ * - ConnectionManagementService: Connection status, health monitoring, configuration updates
+ * - IntegrationCrudService: Database operations and entity management
+ * - IntegrationTestingService: Connection validation and credential testing
+ */
+```
 
-All controller endpoints are now properly documented:
+### 2. connection-management.swagger.ts
 
-#### Basic CRUD Operations
+**Changes Made**:
 
-- `POST /` - Create integration
-- `GET /` - Find all integrations
-- `GET /:id` - Find one integration
-- `PATCH /:id` - Update integration
-- `DELETE /:id` - Remove integration
+- Added service delegation flow documentation
+- Enhanced operation descriptions with service context
+- Included service flow diagrams in descriptions
+- Updated error handling documentation
 
-#### Integration Operations
+**Example Enhancement**:
 
-- `POST /:id/test` - Test connection
-- `POST /connect` - Connect to external tool
-- `POST /:connectionId/sync` - Sync data from integration
-- `GET /type/:type/project/:projectId` - Find integrations by type and project
+```typescript
+description: `Retrieves all integration connections using the ConnectionManagementService. This endpoint:
+• Lists all active and inactive connections across all projects
+• Delegates to ConnectionStatusService for status information
+• Uses ConnectionResponseHelper for consistent response formatting
 
-#### Connection Management
+**Service Flow**: IntegrationsController → IntegrationsService → ConnectionManagementService → ConnectionStatusService`;
+```
 
-- `GET /connections` - Get all connections
-- `GET /connections/:connectionId` - Get connection details
-- `PUT /connections/:connectionId/status` - Update connection status
-- `DELETE /connections/:connectionId` - Disconnect tool
-- `POST /connections/:connectionId/reconnect` - Reconnect tool
-- `GET /connections/:connectionId/health` - Get connection health
-- `PUT /connections/:connectionId/configuration` - Update connection configuration
-- `GET /connections/:connectionId/sync-history` - Get sync history
+### 3. connection-lifecycle.swagger.ts
 
-## Documentation Features
+**Changes Made**:
 
-### Comprehensive Descriptions
+- Enhanced lifecycle operation documentation
+- Added service architecture explanations
+- Improved response schema documentation
+- Updated tool-specific operation details
 
-Each endpoint includes:
+**Key Features**:
 
-- Clear summary and detailed description
-- Parameter definitions with examples
-- Request body schemas with examples
-- Response schemas for all status codes
-- Error handling documentation
+- Detailed service delegation explanations
+- Tool-specific validation requirements
+- Enhanced error response documentation
+- Connection health diagnostic information
 
-### Examples and Use Cases
+### 4. connection-monitoring.swagger.ts
 
-- Tool-specific connection examples (Jira, Asana, Trello)
-- Real-world parameter values
-- Error response examples
-- Status code explanations
+**Changes Made**:
 
-### Type Safety
+- Added monitoring service architecture context
+- Enhanced health check documentation
+- Improved configuration update descriptions
+- Updated sync history documentation
 
-- All DTOs properly referenced
-- Enum values documented
-- Schema validation included
-- Response type definitions
+## Service Flow Documentation
 
-## File Size Optimization
+### Connection Management Flow
 
-The main swagger file was reduced from 512 lines to under 150 lines by:
+```
+GET /integrations/connections
+├── IntegrationsController.getAllConnections()
+├── IntegrationsService.getAllConnections()
+├── ConnectionManagementService.getAllConnections()
+├── ConnectionStatusService.getAllConnections()
+└── ConnectionResponseHelper.mapToConnectionResponse()
+```
 
-- Extracting advanced documentation to separate file
-- Using spread operator to include advanced docs
-- Maintaining clean imports and exports
-- Following single responsibility principle
+### Connection Lifecycle Flow
 
-## Integration with Controller
+```
+POST /integrations/connections/:id/reconnect
+├── IntegrationsController.reconnectTool()
+├── IntegrationsService.reconnectTool()
+├── ConnectionManagementService.reconnectTool()
+├── IntegrationsCoreService.reconnectTool()
+├── ConnectionLifecycleService.reconnectTool()
+└── ConnectionSetupService.testToolConnection()
+```
 
-The swagger documentation is properly integrated with the controller using decorators:
+### Integration CRUD Flow
 
-- `@SwaggerDocs.operation` for endpoint descriptions
-- `@SwaggerDocs.param` for parameter documentation
-- `@SwaggerDocs.body` for request body schemas
-- `@SwaggerDocs.responses.*` for response documentation
+```
+POST /integrations
+├── IntegrationsController.create()
+├── IntegrationsService.create()
+├── IntegrationCrudService.create()
+├── PrismaService (Database operations)
+└── Entity mapping and validation
+```
 
-## Validation
+## Response Schema Updates
 
-- TypeScript compilation successful
-- All imports resolved correctly
-- Documentation structure validated
-- Controller-documentation mapping verified
+### Enhanced Connection Response Schema
 
-This update ensures that the integrations API has comprehensive, maintainable, and accurate OpenAPI documentation that reflects all available endpoints and their proper usage.
+```typescript
+{
+  connectionId: string;
+  status: 'connected' | 'failed' | 'pending' | 'disconnected';
+  toolType: string;
+  name: string;
+  lastSync: Date;
+  nextSync: Date;
+  syncStatus: 'idle' | 'syncing' | 'error';
+  recordsCount: number;
+  configuration: {
+    syncFrequency: number;
+    dataMapping: unknown[];
+    filters: Record<string, unknown>;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+### Health Check Response Schema
+
+```typescript
+{
+  connectionId: string;
+  status: 'healthy' | 'unhealthy';
+  lastChecked: Date;
+  responseTime: number;
+  message: string;
+  details?: {
+    lastSync?: Date;
+    toolType?: string;
+    currentOperation?: string;
+    lastError?: string;
+  };
+}
+```
+
+## Error Response Documentation
+
+### Service-Specific Error Handling
+
+Each service now has documented error scenarios:
+
+#### ConnectionManagementService Errors
+
+- Connection not found (404)
+- Database connection errors (500)
+- Service unavailable errors (503)
+
+#### IntegrationsCoreService Errors
+
+- Tool connectivity errors (502)
+- Authentication failures (401)
+- Rate limiting errors (429)
+
+#### ConnectionLifecycleService Errors
+
+- Credential validation errors (400)
+- Connection timeout errors (408)
+- Tool-specific API errors (varies)
+
+### Consistent Error Response Format
+
+```typescript
+{
+  success: boolean;
+  message: string;
+  error?: {
+    code: string;
+    details: string;
+    service: string;
+  };
+}
+```
+
+## Documentation Quality Improvements
+
+### 1. Consistency
+
+- Standardized operation description format
+- Consistent service flow documentation
+- Uniform error response schemas
+- Standardized parameter descriptions
+
+### 2. Completeness
+
+- All operations include service context
+- Complete parameter documentation
+- Comprehensive response schemas
+- Detailed error scenarios
+
+### 3. Clarity
+
+- Clear service responsibility explanations
+- Step-by-step service flow descriptions
+- Practical examples for all operations
+- Tool-specific documentation where relevant
+
+## Testing Documentation
+
+### API Testing Considerations
+
+1. **Service Integration Tests**: Test complete service delegation flows
+2. **Response Schema Validation**: Ensure responses match documented schemas
+3. **Error Scenario Testing**: Validate error responses for each service
+4. **Service Flow Testing**: Test documented service interaction patterns
+
+### Documentation Validation
+
+1. **Schema Accuracy**: Ensure schemas match actual responses
+2. **Example Verification**: Validate all example requests/responses
+3. **Service Flow Accuracy**: Test documented service delegation paths
+4. **Error Response Validation**: Verify error response formats
+
+## Migration Impact
+
+### For API Consumers
+
+- **No Breaking Changes**: All endpoints remain unchanged
+- **Enhanced Documentation**: More detailed operation descriptions
+- **Better Error Information**: More specific error messages
+- **Service Context**: Understanding of internal architecture
+
+### For Developers
+
+- **Clear Architecture**: Understanding of service responsibilities
+- **Testing Guidance**: Service-specific testing strategies
+- **Error Handling**: Improved error handling patterns
+- **Maintenance**: Clear service boundaries for updates
+
+## Future Enhancements
+
+### Planned Documentation Improvements
+
+1. **Interactive Examples**: Live API testing interface
+2. **Service Metrics**: Performance documentation for each service
+3. **Troubleshooting Guides**: Service-specific debugging information
+4. **Architecture Diagrams**: Visual service interaction diagrams
+
+### Automation Opportunities
+
+1. **Schema Generation**: Automated schema validation from code
+2. **Example Generation**: Dynamic example generation from tests
+3. **Service Documentation**: Automated service flow documentation
+4. **Error Catalog**: Automated error response documentation
+
+## Summary
+
+The Swagger documentation updates provide:
+
+- **Comprehensive Service Architecture Documentation**: Clear understanding of service delegation
+- **Enhanced Operation Descriptions**: Detailed service flow information
+- **Improved Error Handling Documentation**: Service-specific error scenarios
+- **Consistent Documentation Standards**: Uniform format across all operations
+- **Better Developer Experience**: Clear guidance for API usage and testing
+
+These updates ensure that the API documentation accurately reflects the new service architecture while maintaining backward compatibility and providing enhanced developer guidance.
