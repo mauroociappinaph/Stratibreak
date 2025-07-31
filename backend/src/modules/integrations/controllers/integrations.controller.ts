@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -161,5 +162,155 @@ export class IntegrationsController {
     @Param('projectId') projectId: string
   ): Promise<IntegrationEntity[]> {
     return this.integrationsService.findByTypeAndProject(type, projectId);
+  }
+
+  // Connection Management Endpoints
+
+  @Get('connections')
+  @SwaggerDocs.getAllConnections.operation
+  @SwaggerDocs.getAllConnections.responses.success
+  @SwaggerDocs.getAllConnections.responses.serverError
+  async getAllConnections(
+    @Query('status') status?: string,
+    @Query('toolType') toolType?: string,
+    @Query('projectId') projectId?: string
+  ): Promise<ConnectionResponseDto[]> {
+    const filters: { status?: string; toolType?: string; projectId?: string } =
+      {};
+    if (status) filters.status = status;
+    if (toolType) filters.toolType = toolType;
+    if (projectId) filters.projectId = projectId;
+
+    return this.integrationsService.getAllConnections(filters);
+  }
+
+  @Get('connections/:connectionId')
+  @SwaggerDocs.getConnection.operation
+  @SwaggerDocs.getConnection.param
+  @SwaggerDocs.getConnection.responses.success
+  @SwaggerDocs.getConnection.responses.notFound
+  @SwaggerDocs.getConnection.responses.serverError
+  async getConnection(
+    @Param('connectionId') connectionId: string
+  ): Promise<ConnectionResponseDto> {
+    return this.integrationsService.getConnection(connectionId);
+  }
+
+  @Put('connections/:connectionId/status')
+  @HttpCode(HttpStatus.OK)
+  @SwaggerDocs.updateConnectionStatus.operation
+  @SwaggerDocs.updateConnectionStatus.param
+  @SwaggerDocs.updateConnectionStatus.body
+  @SwaggerDocs.updateConnectionStatus.responses.success
+  @SwaggerDocs.updateConnectionStatus.responses.notFound
+  @SwaggerDocs.updateConnectionStatus.responses.serverError
+  async updateConnectionStatus(
+    @Param('connectionId') connectionId: string,
+    @Body() statusUpdate: { status: string; reason?: string }
+  ): Promise<ConnectionResponseDto> {
+    return this.integrationsService.updateConnectionStatus(
+      connectionId,
+      statusUpdate.status,
+      statusUpdate.reason
+    );
+  }
+
+  @Delete('connections/:connectionId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @SwaggerDocs.disconnectTool.operation
+  @SwaggerDocs.disconnectTool.param
+  @SwaggerDocs.disconnectTool.responses.success
+  @SwaggerDocs.disconnectTool.responses.notFound
+  @SwaggerDocs.disconnectTool.responses.serverError
+  async disconnectTool(
+    @Param('connectionId') connectionId: string
+  ): Promise<void> {
+    return this.integrationsService.disconnectTool(connectionId);
+  }
+
+  @Post('connections/:connectionId/reconnect')
+  @HttpCode(HttpStatus.OK)
+  @SwaggerDocs.reconnectTool.operation
+  @SwaggerDocs.reconnectTool.param
+  @SwaggerDocs.reconnectTool.responses.success
+  @SwaggerDocs.reconnectTool.responses.notFound
+  @SwaggerDocs.reconnectTool.responses.serverError
+  async reconnectTool(
+    @Param('connectionId') connectionId: string
+  ): Promise<ConnectionResponseDto> {
+    return this.integrationsService.reconnectTool(connectionId);
+  }
+
+  @Get('connections/:connectionId/health')
+  @SwaggerDocs.getConnectionHealth.operation
+  @SwaggerDocs.getConnectionHealth.param
+  @SwaggerDocs.getConnectionHealth.responses.success
+  @SwaggerDocs.getConnectionHealth.responses.notFound
+  @SwaggerDocs.getConnectionHealth.responses.serverError
+  async getConnectionHealth(
+    @Param('connectionId') connectionId: string
+  ): Promise<{
+    connectionId: string;
+    status: string;
+    lastChecked: Date;
+    responseTime: number;
+    message: string;
+    details?: Record<string, unknown>;
+  }> {
+    return this.integrationsService.getConnectionHealth(connectionId);
+  }
+
+  @Put('connections/:connectionId/configuration')
+  @HttpCode(HttpStatus.OK)
+  @SwaggerDocs.updateConnectionConfig.operation
+  @SwaggerDocs.updateConnectionConfig.param
+  @SwaggerDocs.updateConnectionConfig.body
+  @SwaggerDocs.updateConnectionConfig.responses.success
+  @SwaggerDocs.updateConnectionConfig.responses.notFound
+  @SwaggerDocs.updateConnectionConfig.responses.serverError
+  async updateConnectionConfiguration(
+    @Param('connectionId') connectionId: string,
+    @Body()
+    configUpdate: {
+      syncFrequency?: number;
+      dataMapping?: unknown[];
+      filters?: Record<string, unknown>;
+    }
+  ): Promise<ConnectionResponseDto> {
+    return this.integrationsService.updateConnectionConfiguration(
+      connectionId,
+      configUpdate
+    );
+  }
+
+  @Get('connections/:connectionId/sync-history')
+  @SwaggerDocs.getSyncHistory.operation
+  @SwaggerDocs.getSyncHistory.param
+  @SwaggerDocs.getSyncHistory.responses.success
+  @SwaggerDocs.getSyncHistory.responses.notFound
+  @SwaggerDocs.getSyncHistory.responses.serverError
+  async getSyncHistory(
+    @Param('connectionId') connectionId: string,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number
+  ): Promise<{
+    connectionId: string;
+    history: Array<{
+      syncId: string;
+      startedAt: Date;
+      completedAt: Date;
+      status: string;
+      recordsProcessed: number;
+      recordsCreated: number;
+      recordsUpdated: number;
+      recordsSkipped: number;
+      errors: Array<{ message: string; recordId?: string }>;
+    }>;
+    totalCount: number;
+  }> {
+    return this.integrationsService.getSyncHistory(connectionId, {
+      limit: limit || 10,
+      offset: offset || 0,
+    });
   }
 }
