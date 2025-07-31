@@ -147,10 +147,10 @@ The project has a basic NestJS backend structure with module directories created
   - [x] 5.1.c Setup connection status monitoring
   - _Requirements: 6.1, 6.2_
 
-- [ ] 5.2 Implement Jira integration adapter
-  - [ ] 5.2.a Create JiraAdapter implementing integration interface
-  - [ ] 5.2.b Implement data fetching and transformation from Jira API
-  - [ ] 5.2.c Setup authentication and error handling for Jira
+- [x] 5.2 Implement Jira integration adapter
+  - [x] 5.2.a Create JiraAdapter implementing integration interface
+  - [x] 5.2.b Implement data fetching and transformation from Jira API
+  - [x] 5.2.c Setup authentication and error handling for Jira
   - _Requirements: 6.1, 6.2, 6.3_
 
 - [ ] 5.3 Build Integration REST API
