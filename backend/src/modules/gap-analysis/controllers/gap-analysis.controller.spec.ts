@@ -1,10 +1,19 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { GapType, SeverityLevel } from '../../../types/database/gap.types';
 import {
+  GapCategory,
+  GapType,
+  ImpactLevel,
+  ImpactType,
+  SeverityLevel,
+} from '../../../types/database/gap.types';
+import {
+  GoalStatus,
+  Priority,
   ProjectState,
   ProjectStatus,
 } from '../../../types/database/project.types';
+import { RiskLevel, TrendDirection } from '../../../types/database/state.types';
 import { GapMapper } from '../mappers/gap.mapper';
 import { GapRepository } from '../repositories/gap.repository';
 import { GapAnalysisService } from '../services/gap-analysis.service';
@@ -77,7 +86,7 @@ describe('GapAnalysisController', () => {
         customerSatisfaction: 4.2,
       },
       risks: {
-        overallRisk: 'medium',
+        overallRisk: RiskLevel.MEDIUM,
         activeRisks: 2,
         mitigatedRisks: 1,
         riskTrend: TrendDirection.STABLE,
@@ -92,8 +101,8 @@ describe('GapAnalysisController', () => {
         description: 'Complete the project within the specified timeline',
         targetValue: '1.0',
         currentValue: '0.8',
-        priority: 'medium',
-        status: 'in_progress',
+        priority: Priority.MEDIUM,
+        status: GoalStatus.IN_PROGRESS,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -236,8 +245,8 @@ describe('GapAnalysisController', () => {
               estimatedImpact: {
                 id: 'impact-1',
                 gapId: 'gap-1',
-                type: 'timeline',
-                level: 'medium',
+                type: ImpactType.TIMELINE,
+                level: ImpactLevel.MEDIUM,
                 description: 'Impact on timeline',
                 timeframe: '1-2 weeks',
                 affectedStakeholders: ['team'],
