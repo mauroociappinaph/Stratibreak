@@ -132,7 +132,7 @@ The project has a basic NestJS backend structure with module directories created
 - [ ] 4.3 Implement Gap Analysis REST API
   - [x] 4.3.a Create GapAnalysisController with CRUD endpoints
   - [x] 4.3.b Implement project analysis endpoint
-  - [ ] 4.3.c Add gap categorization and severity endpoints
+  - [x] 4.3.c Add gap categorization and severity endpoints
   - _Requirements: 2.1, 2.2, 2.5_
 
 - [ ] 5. Build basic Integration module
@@ -142,7 +142,7 @@ The project has a basic NestJS backend structure with module directories created
   - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
 - [ ] 5.1 Create Integration service foundation
-  - [ ] 5.1.a Implement IntegrationService with connection management
+  - [x] 5.1.a Implement IntegrationService with connection management
   - [ ] 5.1.b Create base integration adapter interface
   - [ ] 5.1.c Setup connection status monitoring
   - _Requirements: 6.1, 6.2_
