@@ -32,6 +32,23 @@ export {
 // Prediction types
 export * from './prediction.types';
 
+// Alert types (explicit exports to avoid conflicts)
+export type {
+  AlertContextEntity,
+  AlertEntity,
+  AlertPriorityScoreEntity,
+  HistoricalDataPointEntity,
+  PreventiveActionEntity,
+  RiskIndicatorEntity,
+} from './alert.types';
+
+export {
+  AlertSeverity,
+  AlertStatus,
+  AlertType,
+  IndicatorCategory,
+} from './alert.types';
+
 // Notification Entity
 export interface NotificationEntity {
   id: string;

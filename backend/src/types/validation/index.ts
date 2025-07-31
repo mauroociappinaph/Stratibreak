@@ -21,3 +21,6 @@ export * from './notification.validation';
 
 // Common validation schemas
 export * from './common.validation';
+
+// Alert validation schemas
+export * from './alert.validation';

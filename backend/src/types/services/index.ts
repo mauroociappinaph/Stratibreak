@@ -632,3 +632,16 @@ export type { SeverityLevel, TrendDirection };
 
 // Re-export prediction service types
 export * from './prediction.types';
+
+// Re-export alert service types (explicit exports to avoid conflicts)
+export type {
+  AlertPriorityService,
+  AlertService,
+  AnomalyDetectionResult,
+  AnomalyPoint,
+  EarlyWarningService,
+  HistoricalDataPoint,
+  PredictedValue,
+  RiskAnalysisResult,
+  RiskIndicatorService,
+} from './alert.types';
