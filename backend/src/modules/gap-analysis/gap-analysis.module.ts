@@ -6,6 +6,7 @@ import { GapRepository } from './repositories/gap.repository';
 import {
   GapAnalysisService,
   ProjectDataService,
+  ProjectStateAnalyzerService,
   SeverityCalculatorService,
 } from './services';
 
@@ -15,6 +16,7 @@ import {
     GapAnalysisService,
     SeverityCalculatorService,
     ProjectDataService,
+    ProjectStateAnalyzerService,
     PrismaService,
     GapRepository,
     GapMapper,

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../common/services';
 import type {
   Milestone,
@@ -71,7 +71,7 @@ export class ProjectDataService {
     });
 
     if (!project) {
-      throw new Error(`Project ${projectId} not found`);
+      throw new NotFoundException(`Project ${projectId} not found`);
     }
 
     // Create current state using available Prisma fields with defaults
@@ -164,8 +164,10 @@ export class ProjectDataService {
         status: project.status as ProjectStatus,
         startDate: project.startDate || new Date(),
         endDate: project.endDate || new Date(),
-        goals: project.goals.map(g => this.mapGoal(g)),
-        stakeholders: project.stakeholders.map(s => this.mapStakeholder(s)),
+        goals: (project.goals || []).map(g => this.mapGoal(g)),
+        stakeholders: (project.stakeholders || []).map(s =>
+          this.mapStakeholder(s)
+        ),
         currentState,
         connectedTools: [],
         analysisHistory: [],
@@ -173,7 +175,7 @@ export class ProjectDataService {
         updatedAt: project.updatedAt,
       },
       currentState,
-      goals: project.goals.map(g => this.mapGoal(g)),
+      goals: (project.goals || []).map(g => this.mapGoal(g)),
     };
   }
 

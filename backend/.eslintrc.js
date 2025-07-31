@@ -49,5 +49,17 @@ module.exports = {
         '@typescript-eslint/explicit-function-return-type': 'off',
       },
     },
+    {
+      // Special rules for test files
+      files: ['**/*.spec.ts', 'test/**/*.ts'],
+      parserOptions: {
+        project: null, // Disable project-based linting for test files
+      },
+      rules: {
+        'no-console': 'off', // Allow console.log in tests
+        '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/no-unused-vars': 'off', // Allow unused vars in tests
+      },
+    },
   ],
 };

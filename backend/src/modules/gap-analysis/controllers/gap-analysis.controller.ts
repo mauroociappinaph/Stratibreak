@@ -143,10 +143,17 @@ export class GapAnalysisController {
   async getCategorization(
     @Param('projectId') projectId: string
   ): Promise<CategorizedGapsDto> {
-    const projectData =
-      await this.projectDataService.fetchProjectData(projectId);
-    const result = await this.gapAnalysisService.performAnalysis(projectData);
-    return ResultMapperHelper.mapToCategorizedGapsDto(result);
+    try {
+      const projectData =
+        await this.projectDataService.fetchProjectData(projectId);
+      const result = await this.gapAnalysisService.performAnalysis(projectData);
+      return ResultMapperHelper.mapToCategorizedGapsDto(result);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not found')) {
+        throw new NotFoundException(`Project ${projectId} not found`);
+      }
+      throw error;
+    }
   }
 
   @Get(':projectId/severity-analysis')
@@ -158,9 +165,16 @@ export class GapAnalysisController {
   async getSeverityAnalysis(
     @Param('projectId') projectId: string
   ): Promise<SeverityAnalysisDto> {
-    const projectData =
-      await this.projectDataService.fetchProjectData(projectId);
-    const result = await this.gapAnalysisService.performAnalysis(projectData);
-    return ResultMapperHelper.mapToSeverityAnalysisDto(result);
+    try {
+      const projectData =
+        await this.projectDataService.fetchProjectData(projectId);
+      const result = await this.gapAnalysisService.performAnalysis(projectData);
+      return ResultMapperHelper.mapToSeverityAnalysisDto(result);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not found')) {
+        throw new NotFoundException(`Project ${projectId} not found`);
+      }
+      throw error;
+    }
   }
 }
