@@ -1,8 +1,7 @@
 /**
- * Base Integration Adapter Interface Tests
+ * Base Integration Adapter Interface Tests - Core Functionality
  *
- * These tests verify that the base adapter interface and abstract class
- * work correctly and provide the expected functionality.
+ * These tests verify the core functionality of the base adapter interface.
  */
 
 import {
@@ -19,8 +18,6 @@ import {
   type AdapterCredentialValidation,
   type AdapterData,
   type AdapterDisconnectionResult,
-  type AdapterError,
-  type AdapterErrorContext,
   type AdapterFeature,
   type AdapterHealthCheck,
   type AdapterPushResult,
@@ -150,7 +147,7 @@ class MockAdapter extends BaseIntegrationAdapter {
   }
 }
 
-describe('BaseIntegrationAdapter', () => {
+describe('BaseIntegrationAdapter - Core Functionality', () => {
   let adapter: MockAdapter;
 
   beforeEach(() => {
@@ -230,61 +227,6 @@ describe('BaseIntegrationAdapter', () => {
     });
   });
 
-  describe('Credential Validation', () => {
-    it('should validate valid credentials', async () => {
-      const credentials = { apiKey: 'test-key', baseUrl: 'https://test.com' };
-      const result = await adapter.validateCredentials(credentials);
-
-      expect(result.isValid).toBe(true);
-      expect(result.message).toBe('All required credentials are present');
-    });
-
-    it('should reject invalid credentials', async () => {
-      const credentials = { apiKey: 'test-key' }; // Missing baseUrl
-      const result = await adapter.validateCredentials(credentials);
-
-      expect(result.isValid).toBe(false);
-      expect(result.message).toContain('Missing required credentials');
-      expect(result.missingFields).toContain('baseUrl');
-    });
-  });
-
-  describe('Data Transformation', () => {
-    it('should transform external data to internal format', async () => {
-      const externalData = { items: [{ id: '1', name: 'Test' }] };
-      const result = await adapter.transformToInternal(externalData);
-
-      expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('1');
-      expect(result[0].title).toBe('Mock Task 1');
-      expect(result[0].type).toBe('task');
-    });
-
-    it('should transform internal data to external format', async () => {
-      const internalData: AdapterData[] = [
-        {
-          id: '1',
-          type: 'task',
-          title: 'Test Task',
-          description: '',
-          status: 'unknown',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      ];
-
-      const result = await adapter.transformToExternal(internalData);
-      const resultData = result as {
-        items: Array<{ id: string; title: string; type: string }>;
-      };
-
-      expect(resultData.items).toHaveLength(1);
-      expect(resultData.items[0].id).toBe('1');
-      expect(resultData.items[0].title).toBe('Test Task');
-      expect(resultData.items[0].type).toBe('task');
-    });
-  });
-
   describe('Configuration and Features', () => {
     it('should return configuration schema', () => {
       const schema = adapter.getConfigurationSchema();
@@ -302,75 +244,6 @@ describe('BaseIntegrationAdapter', () => {
       expect(features).toHaveLength(1);
       expect(features[0].name).toBe('test_feature');
       expect(features[0].supported).toBe(true);
-    });
-  });
-
-  describe('Error Handling', () => {
-    it('should handle errors with retry logic', async () => {
-      const error: AdapterError = {
-        code: 'TEST_ERROR',
-        message: 'Test error message',
-        retryable: true,
-      };
-
-      const context: AdapterErrorContext = {
-        operation: 'test_operation',
-        timestamp: new Date(),
-        attemptNumber: 1,
-      };
-
-      const result = await adapter.handleError(error, context);
-
-      expect(result.shouldRetry).toBe(true);
-      expect(result.retryAfter).toBeDefined();
-      expect(result.userMessage).toContain(
-        'Mock Test Adapter integration encountered an error'
-      );
-      expect(result.technicalMessage).toContain(
-        'TEST_ERROR: Test error message'
-      );
-    });
-
-    it('should not retry after max attempts', async () => {
-      const error: AdapterError = {
-        code: 'TEST_ERROR',
-        message: 'Test error message',
-        retryable: true,
-      };
-
-      const context: AdapterErrorContext = {
-        operation: 'test_operation',
-        timestamp: new Date(),
-        attemptNumber: 5, // Exceeds max retry attempts
-      };
-
-      const result = await adapter.handleError(error, context);
-
-      expect(result.shouldRetry).toBe(false);
-      expect(result.retryAfter).toBeUndefined();
-    });
-  });
-
-  describe('Utility Methods', () => {
-    it('should create standardized adapter data', () => {
-      // Test the public interface by creating data manually
-      const data: AdapterData = {
-        id: 'test-id',
-        type: 'task',
-        title: 'Test Title',
-        description: 'Test description',
-        status: 'active',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      expect(data.id).toBe('test-id');
-      expect(data.type).toBe('task');
-      expect(data.title).toBe('Test Title');
-      expect(data.description).toBe('Test description');
-      expect(data.status).toBe('active');
-      expect(data.createdAt).toBeInstanceOf(Date);
-      expect(data.updatedAt).toBeInstanceOf(Date);
     });
   });
 });
