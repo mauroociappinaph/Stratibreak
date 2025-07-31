@@ -178,7 +178,7 @@ The project has a basic NestJS backend structure with module directories created
 
 - [ ] 6.2 Build Prediction DTOs and entities
   - [x] 6.2.a Create Prediction entity with probability and impact fields
-  - [ ] 6.2.b Implement DTOs for prediction requests and responses
+  - [x] 6.2.b Implement DTOs for prediction requests and responses
   - [ ] 6.2.c Define risk indicator and alert structures
   - _Requirements: 3.1, 3.2, 3.4_
 
