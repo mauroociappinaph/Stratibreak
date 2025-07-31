@@ -154,7 +154,7 @@ The project has a basic NestJS backend structure with module directories created
   - _Requirements: 6.1, 6.2, 6.3_
 
 - [ ] 5.3 Build Integration REST API
-  - [ ] 5.3.a Create IntegrationController for managing connections
+  - [x] 5.3.a Create IntegrationController for managing connections
   - [ ] 5.3.b Implement endpoints for connecting/disconnecting tools
   - [ ] 5.3.c Add data synchronization endpoints
   - _Requirements: 6.1, 6.2, 6.4_
