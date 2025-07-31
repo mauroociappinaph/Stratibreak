@@ -170,10 +170,10 @@ The project has a basic NestJS backend structure with module directories created
   - Build early warning alert generation
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 6.1 Create Prediction service layer
-  - [ ] 6.1.a Implement PredictiveService with basic trend analysis
-  - [ ] 6.1.b Create risk probability calculation methods
-  - [ ] 6.1.c Implement early warning generation logic
+- [x] 6.1 Create Prediction service layer
+  - [x] 6.1.a Implement PredictiveService with basic trend analysis
+  - [x] 6.1.b Create risk probability calculation methods
+  - [x] 6.1.c Implement early warning generation logic
   - _Requirements: 3.1, 3.2, 3.3_
 
 - [ ] 6.2 Build Prediction DTOs and entities
