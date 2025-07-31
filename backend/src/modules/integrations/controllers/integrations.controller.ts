@@ -10,10 +10,18 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CreateIntegrationDto, UpdateIntegrationDto } from '../dto';
+import { ApiTags } from '@nestjs/swagger';
+import {
+  ConnectionResponseDto,
+  ConnectToolDto,
+  CreateIntegrationDto,
+  SyncResultDto,
+  TestConnectionResponseDto,
+  UpdateIntegrationDto,
+} from '../dto';
 import { IntegrationEntity } from '../entities';
 import { IntegrationsService } from '../services/integrations.service';
+import { SwaggerDocs } from './integrations.swagger';
 
 @ApiTags('integrations')
 @Controller('integrations')
@@ -22,12 +30,11 @@ export class IntegrationsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new integration' })
-  @ApiResponse({
-    status: 201,
-    description: 'Integration created successfully',
-    type: IntegrationEntity,
-  })
+  @SwaggerDocs.create.operation
+  @SwaggerDocs.create.body
+  @SwaggerDocs.create.responses.success
+  @SwaggerDocs.create.responses.badRequest
+  @SwaggerDocs.create.responses.serverError
   async create(
     @Body() createIntegrationDto: CreateIntegrationDto
   ): Promise<IntegrationEntity> {
@@ -35,13 +42,10 @@ export class IntegrationsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all integrations' })
-  @ApiResponse({
-    status: 200,
-    description: 'List of integrations',
-    type: [IntegrationEntity],
-  })
-  @ApiQuery({ name: 'projectId', required: false, type: String })
+  @SwaggerDocs.findAll.operation
+  @SwaggerDocs.findAll.query
+  @SwaggerDocs.findAll.responses.success
+  @SwaggerDocs.findAll.responses.serverError
   async findAll(
     @Query('projectId') projectId?: string
   ): Promise<IntegrationEntity[]> {
@@ -49,23 +53,23 @@ export class IntegrationsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get integration by ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Integration found',
-    type: IntegrationEntity,
-  })
+  @SwaggerDocs.findOne.operation
+  @SwaggerDocs.findOne.param
+  @SwaggerDocs.findOne.responses.success
+  @SwaggerDocs.findOne.responses.notFound
+  @SwaggerDocs.findOne.responses.serverError
   async findOne(@Param('id') id: string): Promise<IntegrationEntity> {
     return this.integrationsService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update integration' })
-  @ApiResponse({
-    status: 200,
-    description: 'Integration updated successfully',
-    type: IntegrationEntity,
-  })
+  @SwaggerDocs.update.operation
+  @SwaggerDocs.update.param
+  @SwaggerDocs.update.body
+  @SwaggerDocs.update.responses.success
+  @SwaggerDocs.update.responses.badRequest
+  @SwaggerDocs.update.responses.notFound
+  @SwaggerDocs.update.responses.serverError
   async update(
     @Param('id') id: string,
     @Body() updateIntegrationDto: UpdateIntegrationDto
@@ -75,24 +79,68 @@ export class IntegrationsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete integration' })
-  @ApiResponse({
-    status: 204,
-    description: 'Integration deleted successfully',
-  })
+  @SwaggerDocs.remove.operation
+  @SwaggerDocs.remove.param
+  @SwaggerDocs.remove.responses.success
+  @SwaggerDocs.remove.responses.notFound
+  @SwaggerDocs.remove.responses.serverError
   async remove(@Param('id') id: string): Promise<void> {
     return this.integrationsService.remove(id);
   }
 
   @Post(':id/test')
-  @ApiOperation({ summary: 'Test integration connection' })
-  @ApiResponse({
-    status: 200,
-    description: 'Integration test result',
-  })
+  @HttpCode(HttpStatus.OK)
+  @SwaggerDocs.testConnection.operation
+  @SwaggerDocs.testConnection.param
+  @SwaggerDocs.testConnection.responses.success
+  @SwaggerDocs.testConnection.responses.notFound
+  @SwaggerDocs.testConnection.responses.serverError
   async testConnection(
     @Param('id') id: string
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<TestConnectionResponseDto> {
     return this.integrationsService.testConnection(id);
+  }
+
+  @Post('connect')
+  @HttpCode(HttpStatus.CREATED)
+  @SwaggerDocs.connectTool.operation
+  @SwaggerDocs.connectTool.body
+  @SwaggerDocs.connectTool.responses.success
+  @SwaggerDocs.connectTool.responses.badRequest
+  @SwaggerDocs.connectTool.responses.serverError
+  async connectTool(
+    @Body() connectToolDto: ConnectToolDto
+  ): Promise<ConnectionResponseDto> {
+    return this.integrationsService.connectToTool(
+      connectToolDto.toolType,
+      connectToolDto.credentials
+    );
+  }
+
+  @Post(':connectionId/sync')
+  @HttpCode(HttpStatus.OK)
+  @SwaggerDocs.syncData.operation
+  @SwaggerDocs.syncData.param
+  @SwaggerDocs.syncData.responses.success
+  @SwaggerDocs.syncData.responses.notFound
+  @SwaggerDocs.syncData.responses.serverError
+  async syncData(
+    @Param('connectionId') connectionId: string
+  ): Promise<SyncResultDto> {
+    return this.integrationsService.syncData(connectionId);
+  }
+
+  @Get('type/:type/project/:projectId')
+  @SwaggerDocs.findByTypeAndProject.operation
+  @SwaggerDocs.findByTypeAndProject.param.type
+  @SwaggerDocs.findByTypeAndProject.param.projectId
+  @SwaggerDocs.findByTypeAndProject.responses.success
+  @SwaggerDocs.findByTypeAndProject.responses.badRequest
+  @SwaggerDocs.findByTypeAndProject.responses.serverError
+  async findByTypeAndProject(
+    @Param('type') type: string,
+    @Param('projectId') projectId: string
+  ): Promise<IntegrationEntity[]> {
+    return this.integrationsService.findByTypeAndProject(type, projectId);
   }
 }
