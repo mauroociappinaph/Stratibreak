@@ -5,6 +5,11 @@ import { RiskSwaggerDocs } from './predictions-risk.swagger';
 import { TrendsSwaggerDocs } from './predictions-trends.swagger';
 import { WarningsSwaggerDocs } from './predictions-warnings.swagger';
 
+// Export all response DTOs for use in controllers
+export * from './predictions-advanced.swagger';
+export * from './predictions-risk-assessment.swagger';
+export * from './predictions-statistical.swagger';
+
 // Swagger decorators for the controller methods
 export const SwaggerDocs = {
   // Re-export CRUD operations
