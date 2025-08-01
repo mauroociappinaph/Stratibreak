@@ -203,6 +203,19 @@ The project has a basic NestJS backend structure with module directories created
   - [x] 6.3.1.l Clean up predictions controller and fix TypeScript errors ✅ Done
   - _Requirements: 3.5 Track prediction accuracy and historical performance_
 
+- [x] 6.3.2 Complete Predictions Controller Split and Type Safety
+  - [x] 6.3.2.a Split monolithic predictions controller into three focused controllers ✅ Done
+  - [x] 6.3.2.b Create PredictionsAdvancedController for AI-powered prediction analysis ✅ Done
+  - [x] 6.3.2.c Move advanced endpoints to /predictions/advanced routes ✅ Done
+  - [x] 6.3.2.d Fix TypeScript type safety issues with enum imports and casting ✅ Done
+  - [x] 6.3.2.e Fix optional deadline field handling in response DTOs ✅ Done
+  - [x] 6.3.2.f Add overallRiskLevel calculation for early warnings ✅ Done
+  - [x] 6.3.2.g Update module registration for all three controllers ✅ Done
+  - [x] 6.3.2.h Fix unit test imports and controller references ✅ Done
+  - [x] 6.3.2.i Create comprehensive controller split documentation ✅ Done
+  - [x] 6.3.2.j Ensure all files are under 300 lines limit ✅ Done
+  - _Requirements: Code maintainability, Single Responsibility Principle, Type Safety_
+
 - [ ] 7. Build Action Plan Generation module
   - Create action plan generator service
   - Implement plan prioritization and resource estimation
