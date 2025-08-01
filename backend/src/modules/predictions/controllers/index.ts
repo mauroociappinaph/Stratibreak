@@ -1,4 +1,6 @@
 // Predictions Controllers
+export { PredictionsAdvancedController } from './predictions-advanced.controller';
+export { PredictionsHistoryController } from './predictions-history.controller';
 export { PredictionsController } from './predictions.controller';
 
 // Swagger Documentation

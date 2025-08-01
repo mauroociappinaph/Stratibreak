@@ -1,5 +1,9 @@
 import { Module } from '@nestjs/common';
-import { PredictionsController } from './controllers';
+import {
+  PredictionsAdvancedController,
+  PredictionsController,
+  PredictionsHistoryController,
+} from './controllers';
 import {
   EarlyWarningService,
   PredictionsService,
@@ -8,7 +12,11 @@ import {
 } from './services';
 
 @Module({
-  controllers: [PredictionsController],
+  controllers: [
+    PredictionsController,
+    PredictionsAdvancedController,
+    PredictionsHistoryController,
+  ],
   providers: [
     PredictionsService,
     PredictiveService,
