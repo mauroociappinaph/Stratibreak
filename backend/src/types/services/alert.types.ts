@@ -167,14 +167,5 @@ export interface EarlyWarningService {
   ): Promise<void>;
 }
 
-// Re-export DTOs for convenience
-export type {
-  AlertDto,
-  AlertPriorityScoreDto,
-  AlertSummaryDto,
-  CreateAlertDto,
-  PreventiveActionDto,
-  RiskIndicatorDto,
-  RiskIndicatorWithHistoryDto,
-  UpdateAlertDto,
-} from '../../modules/predictions/dto';
+// Note: DTOs are available in the predictions module
+// Import them directly from '../../modules/predictions/dto' when needed
