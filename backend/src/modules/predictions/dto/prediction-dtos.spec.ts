@@ -192,7 +192,7 @@ describe('Prediction DTOs', () => {
             expiresAt: '2024-01-08T00:00:00Z',
           },
         ],
-        overallRiskLevel: 0.7,
+        overallRiskLevel: 'high',
       };
 
       const dto = plainToClass(GenerateEarlyWarningsResponseDto, validData);
