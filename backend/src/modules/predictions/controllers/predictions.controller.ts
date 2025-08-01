@@ -1,6 +1,3 @@
-/* eslint-disable max-lines */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
   Body,
   Controller,
@@ -11,11 +8,13 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ImpactLevel } from '../../../types/database/gap.types';
 import { PatternType } from '../../../types/services/prediction.types';
 import {
+  AccuracyMetricsResponse,
   CalculateRiskProbabilityDto,
   CalculateRiskProbabilityResponseDto,
   CreatePredictionDto,
@@ -30,20 +29,7 @@ import {
   PredictiveService,
   RiskCalculatorService,
 } from '../services';
-import {
-  ComprehensiveWarningsResponseDto,
-  TrendAnalysisResponseDto,
-} from './predictions-advanced.swagger';
-import {
-  EarlyWarningStatusResponseDto,
-  PredictiveAlertsResponseDto,
-  RiskAssessmentResponseDto,
-  RiskCorrelationAnalysisResponseDto,
-} from './predictions-risk-assessment.swagger';
-import {
-  DynamicRiskThresholdsResponseDto,
-  MonteCarloRiskAnalysisResponseDto,
-} from './predictions-statistical.swagger';
+import { MonteCarloRiskAnalysisResponseDto } from './predictions-statistical.swagger';
 
 @ApiTags('predictions')
 @Controller('predictions')
@@ -160,7 +146,7 @@ export class PredictionsController {
     @Body() predictFutureIssuesDto: PredictFutureIssuesDto
   ): Promise<{
     projectId: string;
-    predictions: any[];
+    predictions: unknown[];
     analysisTimestamp: string;
   }> {
     const historicalData = {
@@ -303,529 +289,6 @@ export class PredictionsController {
     };
   }
 
-  @Get('risk-assessment/:projectId')
-  @ApiOperation({
-    summary: 'Get comprehensive risk assessment for project',
-    description:
-      'Provides detailed risk analysis including trends, predictions, and recommendations',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Risk assessment retrieved successfully',
-    type: RiskAssessmentResponseDto,
-  })
-  async getRiskAssessment(@Param('projectId') projectId: string) {
-    // Generate sample risk indicators for the project
-    const sampleRiskIndicators = [
-      {
-        indicator: 'velocity_trend',
-        currentValue: 7.2,
-        threshold: 8.5,
-        trend: 'declining' as any,
-        weight: 0.8,
-      },
-      {
-        indicator: 'resource_utilization',
-        currentValue: 0.65,
-        threshold: 0.8,
-        trend: 'stable' as any,
-        weight: 0.7,
-      },
-      {
-        indicator: 'timeline_compression',
-        currentValue: 1.3,
-        threshold: 1.0,
-        trend: 'volatile' as any,
-        weight: 0.9,
-      },
-      {
-        indicator: 'quality_metrics',
-        currentValue: 0.82,
-        threshold: 0.9,
-        trend: 'improving' as any,
-        weight: 0.6,
-      },
-    ];
-
-    // Calculate comprehensive risk assessment
-    const riskAssessment =
-      this.predictiveService.calculateRiskProbability(sampleRiskIndicators);
-
-    // Generate early warnings based on current trends
-    const mockTrendData = {
-      projectId,
-      currentMetrics: [
-        {
-          name: 'velocity',
-          currentValue: 7.2,
-          previousValue: 8.5,
-          changeRate: -0.15,
-          trend: 'declining' as any,
-          unit: 'story_points',
-        },
-        {
-          name: 'resource_utilization',
-          currentValue: 0.65,
-          previousValue: 0.7,
-          changeRate: -0.07,
-          trend: 'stable' as any,
-          unit: 'percentage',
-        },
-      ],
-      recentChanges: [
-        {
-          metric: 'velocity',
-          changeType: 'gradual' as any,
-          magnitude: 0.15,
-          timeframe: { value: 7, unit: 'days' as any },
-          significance: 0.8,
-        },
-      ],
-      velocityIndicators: [
-        {
-          name: 'development_velocity',
-          currentVelocity: 7.2,
-          averageVelocity: 8.5,
-          trend: 'declining' as any,
-          predictedVelocity: 6.8,
-        },
-      ],
-    };
-
-    const earlyWarnings =
-      this.predictiveService.generateEarlyWarnings(mockTrendData);
-
-    // Determine overall risk level based on assessment
-    const overallRiskLevel =
-      riskAssessment.overallRisk > 0.8
-        ? 'CRITICAL'
-        : riskAssessment.overallRisk > 0.6
-          ? 'HIGH'
-          : riskAssessment.overallRisk > 0.4
-            ? 'MEDIUM'
-            : 'LOW';
-
-    return {
-      projectId,
-      overallRiskLevel,
-      riskScore: riskAssessment.overallRisk,
-      riskAssessment: {
-        overallRisk: riskAssessment.overallRisk,
-        riskFactors: riskAssessment.riskFactors,
-        recommendations: riskAssessment.recommendations,
-        confidenceLevel: riskAssessment.confidenceLevel,
-      },
-      earlyWarnings: earlyWarnings.map(alert => ({
-        id: alert.id,
-        type: alert.type,
-        severity: alert.severity,
-        title: alert.title,
-        description: alert.description,
-        probability: alert.probability,
-        estimatedTimeToOccurrence: alert.estimatedTimeToOccurrence,
-        potentialImpact: alert.potentialImpact,
-        preventionWindow: alert.preventionWindow,
-        suggestedActions: alert.suggestedActions,
-      })),
-      criticalRisks: riskAssessment.riskFactors
-        .filter(factor => {
-          const factorRisk =
-            Math.abs(factor.currentValue - factor.threshold) /
-            Math.abs(factor.threshold);
-          return factorRisk > 0.3;
-        })
-        .map(
-          factor =>
-            `${factor.factor}: ${factor.currentValue} (threshold: ${factor.threshold})`
-        ),
-      nextReviewDate: new Date(
-        Date.now() + 7 * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      analysisTimestamp: new Date().toISOString(),
-    };
-  }
-
-  @Get('trend-analysis/:projectId')
-  @ApiOperation({
-    summary: 'Get trend analysis for project',
-    description:
-      'Provides comprehensive trend analysis with predictions and recommendations',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Trend analysis retrieved successfully',
-    type: TrendAnalysisResponseDto,
-  })
-  async getTrendAnalysis(@Param('projectId') projectId: string) {
-    // This would typically fetch historical data and perform trend analysis
-    // For now, return a structured response that matches the expected format
-    const mockHistoricalData = {
-      projectId,
-      timeRange: {
-        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-        endDate: new Date(),
-      },
-      metrics: [
-        {
-          name: 'velocity',
-          values: Array.from({ length: 30 }, (_, i) => ({
-            timestamp: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000),
-            value: 8 + Math.sin(i / 5) * 2 + Math.random() * 0.5,
-          })),
-          unit: 'story_points',
-        },
-      ],
-      events: [],
-      patterns: [],
-    };
-
-    const trendAnalysis = await this.predictiveService.analyzeTrends(
-      projectId,
-      mockHistoricalData
-    );
-
-    return trendAnalysis;
-  }
-
-  @Post('comprehensive-warnings')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Generate comprehensive early warnings',
-    description:
-      'Advanced early warning system with multiple data sources and correlation analysis',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Comprehensive warnings generated successfully',
-    type: ComprehensiveWarningsResponseDto,
-  })
-  async generateComprehensiveWarnings(
-    @Body() generateEarlyWarningsDto: GenerateEarlyWarningsDto
-  ) {
-    const trendData = {
-      projectId: generateEarlyWarningsDto.projectId,
-      currentMetrics: generateEarlyWarningsDto.currentMetrics.map(metric => ({
-        name: metric.name,
-        currentValue: metric.currentValue,
-        previousValue: metric.previousValue,
-        changeRate: metric.changeRate,
-        trend: metric.trend as any,
-        unit: metric.unit,
-      })),
-      recentChanges: generateEarlyWarningsDto.recentChanges.map(change => ({
-        metric: change.metric,
-        changeType: change.changeType as any,
-        magnitude: change.magnitude,
-        timeframe: {
-          value: change.timeframe.value,
-          unit: change.timeframe.unit as any,
-        },
-        significance: change.significance,
-      })),
-      velocityIndicators: generateEarlyWarningsDto.velocityIndicators.map(
-        velocity => ({
-          name: velocity.name,
-          currentVelocity: velocity.currentVelocity,
-          averageVelocity: velocity.averageVelocity,
-          trend: velocity.trend as any,
-          predictedVelocity: velocity.predictedVelocity,
-        })
-      ),
-    };
-
-    const warnings =
-      await this.earlyWarningService.generateComprehensiveWarnings(trendData);
-
-    return {
-      projectId: generateEarlyWarningsDto.projectId,
-      warnings,
-      analysisTimestamp: new Date().toISOString(),
-    };
-  }
-
-  @Post('predictive-alerts/:projectId')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Generate predictive alerts with 72+ hour advance warning',
-    description:
-      'Generates predictive alerts based on historical patterns and trend analysis with minimum 72-hour advance warning',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Predictive alerts generated successfully',
-    type: PredictiveAlertsResponseDto,
-  })
-  async generatePredictiveAlerts(@Param('projectId') projectId: string) {
-    // Generate sample project data and historical data for predictive analysis
-    const projectData = {
-      projectId,
-      currentState: {
-        status: 'active',
-        progress: 0.45,
-        health: 0.75,
-        riskLevel: 0.35,
-      },
-      metrics: [
-        {
-          name: 'velocity',
-          value: 7.2,
-          unit: 'story_points',
-          category: 'performance',
-        },
-        {
-          name: 'resource_utilization',
-          value: 0.65,
-          unit: 'percentage',
-          category: 'resources',
-        },
-        {
-          name: 'quality_metrics',
-          value: 0.82,
-          unit: 'percentage',
-          category: 'quality',
-        },
-        {
-          name: 'timeline_progress',
-          value: 0.45,
-          unit: 'percentage',
-          category: 'timeline',
-        },
-      ],
-      events: [],
-      timestamp: new Date(),
-    };
-
-    const historicalData = {
-      projectId,
-      timeRange: {
-        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-        endDate: new Date(),
-      },
-      metrics: [
-        {
-          name: 'velocity',
-          values: Array.from({ length: 30 }, (_, i) => ({
-            timestamp: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000),
-            value: 8.5 + Math.sin(i / 5) * 1.5 + (Math.random() - 0.5) * 0.8,
-          })),
-          unit: 'story_points',
-        },
-        {
-          name: 'resource_utilization',
-          values: Array.from({ length: 30 }, (_, i) => ({
-            timestamp: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000),
-            value: 0.75 + Math.sin(i / 7) * 0.1 + (Math.random() - 0.5) * 0.05,
-          })),
-          unit: 'percentage',
-        },
-      ],
-      events: [],
-      patterns: [],
-    };
-
-    const predictiveAlerts =
-      await this.earlyWarningService.generatePredictiveAlerts(
-        projectData,
-        historicalData
-      );
-
-    return {
-      projectId,
-      predictiveAlerts: predictiveAlerts.map(alert => ({
-        id: alert.id,
-        type: alert.type,
-        severity: alert.severity,
-        title: alert.title,
-        description: alert.description,
-        probability: alert.probability,
-        estimatedTimeToOccurrence: alert.estimatedTimeToOccurrence,
-        potentialImpact: alert.potentialImpact,
-        preventionWindow: alert.preventionWindow,
-        suggestedActions: alert.suggestedActions,
-        createdAt: alert.createdAt,
-        expiresAt: alert.expiresAt,
-      })),
-      analysisTimestamp: new Date().toISOString(),
-      advanceWarningHours: 72,
-    };
-  }
-
-  @Post('risk-correlation-analysis')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Analyze risk correlations between multiple indicators',
-    description:
-      'Analyzes correlations between risk indicators to identify compound risks and dependencies',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Risk correlation analysis completed successfully',
-    type: RiskCorrelationAnalysisResponseDto,
-  })
-  async analyzeRiskCorrelations(
-    @Body() calculateRiskDto: CalculateRiskProbabilityDto
-  ) {
-    const riskIndicators = calculateRiskDto.indicators.map(indicator => ({
-      indicator: indicator.indicator,
-      currentValue: indicator.currentValue,
-      threshold: indicator.threshold,
-      trend: indicator.trend as any,
-      weight: indicator.weight,
-    }));
-
-    // Calculate individual risks
-    const individualRisks = riskIndicators.map(indicator => ({
-      indicator: indicator.indicator,
-      risk: this.predictiveService.calculateRiskProbability([indicator])
-        .overallRisk,
-      weight: indicator.weight,
-    }));
-
-    // Calculate compound risk
-    const compoundRisk =
-      this.predictiveService.calculateRiskProbability(riskIndicators);
-
-    // Generate correlation matrix (simplified implementation)
-    const correlationMatrix: number[][] = [];
-    for (let i = 0; i < riskIndicators.length; i++) {
-      const row: number[] = [];
-      for (let j = 0; j < riskIndicators.length; j++) {
-        if (i === j) {
-          row.push(1.0);
-        } else {
-          // Simplified correlation based on trend similarity
-          const indicator1 = riskIndicators[i];
-          const indicator2 = riskIndicators[j];
-          const correlation =
-            indicator1 && indicator2 && indicator1.trend === indicator2.trend
-              ? 0.7
-              : 0.3;
-          row.push(correlation);
-        }
-      }
-      correlationMatrix.push(row);
-    }
-
-    return {
-      projectId: calculateRiskDto.projectId,
-      individualRisks,
-      compoundRisk: {
-        overallRisk: compoundRisk.overallRisk,
-        confidenceLevel: compoundRisk.confidenceLevel,
-      },
-      correlationMatrix,
-      riskInteractions: riskIndicators.map((indicator, index) => ({
-        indicator: indicator.indicator,
-        correlatedWith: riskIndicators
-          .filter(
-            (_, i) => i !== index && (correlationMatrix[index]?.[i] ?? 0) > 0.5
-          )
-          .map(correlated => correlated.indicator),
-        compoundEffect: (correlationMatrix[index] ?? []).reduce(
-          (sum: number, corr: number, i: number) =>
-            i !== index ? sum + corr * (individualRisks[i]?.risk ?? 0) : sum,
-          0
-        ),
-      })),
-      recommendations: [
-        ...compoundRisk.recommendations,
-        'Monitor correlated risks simultaneously for compound effects',
-        'Implement coordinated mitigation strategies for highly correlated risks',
-      ],
-      analysisTimestamp: new Date().toISOString(),
-    };
-  }
-
-  @Get('early-warning-status/:projectId')
-  @ApiOperation({
-    summary: 'Get current early warning status for project',
-    description:
-      'Provides current status of all active early warnings and their escalation levels',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Early warning status retrieved successfully',
-    type: EarlyWarningStatusResponseDto,
-  })
-  async getEarlyWarningStatus(@Param('projectId') projectId: string) {
-    // Generate sample active warnings
-    const activeWarnings = [
-      {
-        id: `warning_${Date.now()}_1`,
-        type: 'trend_alert',
-        severity: 'high',
-        title: 'Velocity declining trend detected',
-        description:
-          'Development velocity has been declining for 5 consecutive days',
-        probability: 0.85,
-        estimatedTimeToOccurrence: { value: 48, unit: 'hours' },
-        potentialImpact: 'high',
-        preventionWindow: { value: 24, unit: 'hours' },
-        createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
-        expiresAt: new Date(Date.now() + 36 * 60 * 60 * 1000),
-        escalationLevel: 1,
-        timeToEscalation: { value: 12, unit: 'hours' },
-      },
-      {
-        id: `warning_${Date.now()}_2`,
-        type: 'risk_alert',
-        severity: 'medium',
-        title: 'Resource utilization below threshold',
-        description: 'Resource utilization at 65% of target level',
-        probability: 0.72,
-        estimatedTimeToOccurrence: { value: 72, unit: 'hours' },
-        potentialImpact: 'medium',
-        preventionWindow: { value: 48, unit: 'hours' },
-        createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
-        expiresAt: new Date(Date.now() + 66 * 60 * 60 * 1000),
-        escalationLevel: 0,
-        timeToEscalation: { value: 18, unit: 'hours' },
-      },
-    ];
-
-    // Calculate escalation alerts
-    const escalationAlerts = this.earlyWarningService.generateEscalationAlerts(
-      activeWarnings.map(warning => ({
-        id: warning.id,
-        projectId,
-        type: warning.type as any,
-        severity: warning.severity as any,
-        title: warning.title,
-        description: warning.description,
-        probability: warning.probability,
-        estimatedTimeToOccurrence: warning.estimatedTimeToOccurrence as any,
-        potentialImpact: warning.potentialImpact as any,
-        preventionWindow: warning.preventionWindow as any,
-        suggestedActions: [],
-        createdAt: warning.createdAt,
-        expiresAt: warning.expiresAt,
-      }))
-    );
-
-    return {
-      projectId,
-      activeWarnings,
-      escalationAlerts: escalationAlerts.map(alert => ({
-        id: alert.id,
-        originalWarningId: alert.id.replace('escalated_', ''),
-        severity: alert.severity,
-        title: alert.title,
-        description: alert.description,
-        escalatedAt: alert.createdAt,
-      })),
-      warningStatistics: {
-        totalActive: activeWarnings.length,
-        critical: activeWarnings.filter(w => w.severity === 'critical').length,
-        high: activeWarnings.filter(w => w.severity === 'high').length,
-        medium: activeWarnings.filter(w => w.severity === 'medium').length,
-        low: activeWarnings.filter(w => w.severity === 'low').length,
-        requiresEscalation: escalationAlerts.length,
-      },
-      nextReviewTime: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
-      analysisTimestamp: new Date().toISOString(),
-    };
-  }
-
   @Post('monte-carlo-risk-analysis')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -845,7 +308,7 @@ export class PredictionsController {
       indicator: indicator.indicator,
       currentValue: indicator.currentValue,
       threshold: indicator.threshold,
-      trend: indicator.trend as any,
+      trend: indicator.trend as unknown,
       weight: indicator.weight,
     }));
 
@@ -903,11 +366,15 @@ export class PredictionsController {
       },
       compoundRisk,
       riskMetrics: {
-        volatility: this.calculateRiskVolatility(
+        volatility: this.riskCalculatorService.calculateRiskVolatility(
           monteCarloResult.riskDistribution
         ),
-        skewness: this.calculateSkewness(monteCarloResult.riskDistribution),
-        kurtosis: this.calculateKurtosis(monteCarloResult.riskDistribution),
+        skewness: this.riskCalculatorService.calculateSkewness(
+          monteCarloResult.riskDistribution
+        ),
+        kurtosis: this.riskCalculatorService.calculateKurtosis(
+          monteCarloResult.riskDistribution
+        ),
       },
       recommendations: [
         monteCarloResult.meanRisk > 0.8
@@ -929,164 +396,87 @@ export class PredictionsController {
     };
   }
 
-  @Post('dynamic-risk-thresholds/:projectId')
-  @HttpCode(HttpStatus.OK)
+  // Prediction History and Trend Analysis Endpoints
+
+  @Get('history/:projectId')
   @ApiOperation({
-    summary: 'Calculate dynamic risk thresholds based on historical data',
+    summary: 'Get prediction history for project',
     description:
-      'Calculates adaptive risk thresholds that adjust based on project history and context',
+      'Retrieves historical predictions with accuracy metrics and outcomes. Supports filtering by date range and prediction type.',
   })
   @ApiResponse({
     status: 200,
-    description: 'Dynamic risk thresholds calculated successfully',
-    type: DynamicRiskThresholdsResponseDto,
+    description: 'Prediction history retrieved successfully',
   })
-  async calculateDynamicRiskThresholds(
+  async getPredictionHistory(
     @Param('projectId') projectId: string,
-    @Body() calculateRiskDto: CalculateRiskProbabilityDto
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('predictionType') predictionType?: string,
+    @Query('limit') limit?: string
   ) {
-    // Generate sample historical data for threshold calculation
-    const historicalData = {
+    const parsedStartDate = startDate ? new Date(startDate) : undefined;
+    const parsedEndDate = endDate ? new Date(endDate) : undefined;
+    const parsedLimit = limit ? parseInt(limit, 10) : 50;
+
+    return this.predictionsService.getPredictionHistory(
       projectId,
-      timeRange: {
-        startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
-        endDate: new Date(),
-      },
-      metrics: calculateRiskDto.indicators.map(indicator => ({
-        name: indicator.indicator,
-        values: Array.from({ length: 90 }, (_, i) => ({
-          timestamp: new Date(Date.now() - (89 - i) * 24 * 60 * 60 * 1000),
-          value:
-            indicator.currentValue +
-            (Math.random() - 0.5) * indicator.currentValue * 0.3,
-        })),
-        unit: 'units',
-      })),
-      events: [],
-      patterns: [],
-    };
+      parsedStartDate,
+      parsedEndDate,
+      predictionType,
+      parsedLimit
+    );
+  }
 
-    const dynamicThresholds = calculateRiskDto.indicators.map(indicator => {
-      const riskIndicator = {
-        indicator: indicator.indicator,
-        currentValue: indicator.currentValue,
-        threshold: indicator.threshold,
-        trend: indicator.trend as any,
-        weight: indicator.weight,
-      };
-
-      const thresholds = this.riskCalculatorService.calculateDynamicThresholds(
-        riskIndicator,
-        historicalData
-      );
-
-      return {
-        indicator: indicator.indicator,
-        currentValue: indicator.currentValue,
-        staticThreshold: indicator.threshold,
-        dynamicThresholds: thresholds,
-        riskLevels: {
-          low: indicator.currentValue < thresholds.warning,
-          medium:
-            indicator.currentValue >= thresholds.warning &&
-            indicator.currentValue < thresholds.critical,
-          high:
-            indicator.currentValue >= thresholds.critical &&
-            indicator.currentValue < thresholds.emergency,
-          critical: indicator.currentValue >= thresholds.emergency,
-        },
-        adaptationReason: this.getDynamicThresholdReason(
-          indicator.currentValue,
-          indicator.threshold,
-          thresholds
-        ),
-      };
-    });
-
-    return {
+  @Get('trend-history/:projectId')
+  @ApiOperation({
+    summary: 'Get trend analysis history for project',
+    description:
+      'Retrieves historical trend data for project metrics with predictions and insights. Supports filtering by metric and time granularity.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Trend history retrieved successfully',
+  })
+  async getTrendHistory(
+    @Param('projectId') projectId: string,
+    @Query('metric') metric?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('granularity') granularity?: string
+  ) {
+    return this.predictionsService.getTrendHistory(
       projectId,
-      dynamicThresholds,
-      thresholdAnalysis: {
-        adaptiveIndicators: dynamicThresholds.filter(
-          dt =>
-            Math.abs(dt.staticThreshold - dt.dynamicThresholds.critical) >
-            dt.staticThreshold * 0.1
-        ).length,
-        totalIndicators: dynamicThresholds.length,
-        averageAdaptation:
-          dynamicThresholds.reduce(
-            (sum, dt) =>
-              sum +
-              Math.abs(dt.staticThreshold - dt.dynamicThresholds.critical) /
-                dt.staticThreshold,
-            0
-          ) / dynamicThresholds.length,
-      },
-      recommendations: [
-        'Use dynamic thresholds for more accurate risk assessment',
-        'Review static thresholds quarterly based on historical performance',
-        'Consider seasonal patterns when setting thresholds',
-        'Implement gradual threshold adjustments to avoid alert fatigue',
-      ],
-      analysisTimestamp: new Date().toISOString(),
-      historicalDataPeriod: '90 days',
-    };
+      metric,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
+      granularity || 'daily'
+    );
   }
 
-  // Helper methods for statistical calculations
-  private calculateRiskVolatility(riskSamples: number[]): number {
-    const mean =
-      riskSamples.reduce((sum, risk) => sum + risk, 0) / riskSamples.length;
-    const variance =
-      riskSamples.reduce((sum, risk) => sum + Math.pow(risk - mean, 2), 0) /
-      riskSamples.length;
-    return Math.sqrt(variance);
-  }
+  @Get('accuracy-metrics/:projectId')
+  @ApiOperation({
+    summary: 'Get prediction accuracy metrics for project',
+    description:
+      'Retrieves comprehensive accuracy metrics including precision, recall, F1-score, and accuracy trends over time.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Accuracy metrics retrieved successfully',
+    type: AccuracyMetricsResponse,
+  })
+  async getPredictionAccuracyMetrics(
+    @Param('projectId') projectId: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string
+  ): Promise<AccuracyMetricsResponse> {
+    const parsedStartDate = startDate ? new Date(startDate) : undefined;
+    const parsedEndDate = endDate ? new Date(endDate) : undefined;
 
-  private calculateSkewness(riskSamples: number[]): number {
-    const n = riskSamples.length;
-    const mean = riskSamples.reduce((sum, risk) => sum + risk, 0) / n;
-    const variance =
-      riskSamples.reduce((sum, risk) => sum + Math.pow(risk - mean, 2), 0) / n;
-    const stdDev = Math.sqrt(variance);
-
-    const skewness =
-      riskSamples.reduce(
-        (sum, risk) => sum + Math.pow((risk - mean) / stdDev, 3),
-        0
-      ) / n;
-    return skewness;
-  }
-
-  private calculateKurtosis(riskSamples: number[]): number {
-    const n = riskSamples.length;
-    const mean = riskSamples.reduce((sum, risk) => sum + risk, 0) / n;
-    const variance =
-      riskSamples.reduce((sum, risk) => sum + Math.pow(risk - mean, 2), 0) / n;
-    const stdDev = Math.sqrt(variance);
-
-    const kurtosis =
-      riskSamples.reduce(
-        (sum, risk) => sum + Math.pow((risk - mean) / stdDev, 4),
-        0
-      ) / n;
-    return kurtosis - 3; // Excess kurtosis
-  }
-
-  private getDynamicThresholdReason(
-    currentValue: number,
-    staticThreshold: number,
-    dynamicThresholds: { warning: number; critical: number; emergency: number }
-  ): string {
-    const staticDiff = Math.abs(currentValue - staticThreshold);
-    const dynamicDiff = Math.abs(currentValue - dynamicThresholds.critical);
-
-    if (dynamicDiff < staticDiff) {
-      return 'Dynamic threshold provides better sensitivity to current conditions';
-    } else if (dynamicThresholds.critical > staticThreshold) {
-      return 'Historical data suggests higher threshold is appropriate';
-    } else {
-      return 'Historical data suggests lower threshold for early detection';
-    }
+    return this.predictionsService.getPredictionAccuracyMetrics(
+      projectId,
+      parsedStartDate,
+      parsedEndDate
+    );
   }
 }
