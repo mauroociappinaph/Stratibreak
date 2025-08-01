@@ -522,4 +522,54 @@ export class RiskCalculatorService {
 
     return denominator === 0 ? 0 : numerator / denominator;
   }
+
+  /**
+   * Calculate risk volatility (standard deviation)
+   */
+  calculateRiskVolatility(values: number[]): number {
+    if (values.length < 2) return 0;
+    const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+    const variance =
+      values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
+      values.length;
+    return Math.sqrt(variance);
+  }
+
+  /**
+   * Calculate skewness of risk distribution
+   */
+  calculateSkewness(values: number[]): number {
+    if (values.length < 3) return 0;
+    const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+    const variance =
+      values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
+      values.length;
+    const stdDev = Math.sqrt(variance);
+
+    if (stdDev === 0) return 0;
+
+    const skewness =
+      values.reduce((sum, val) => sum + Math.pow((val - mean) / stdDev, 3), 0) /
+      values.length;
+    return skewness;
+  }
+
+  /**
+   * Calculate kurtosis of risk distribution
+   */
+  calculateKurtosis(values: number[]): number {
+    if (values.length < 4) return 0;
+    const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+    const variance =
+      values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
+      values.length;
+    const stdDev = Math.sqrt(variance);
+
+    if (stdDev === 0) return 0;
+
+    const kurtosis =
+      values.reduce((sum, val) => sum + Math.pow((val - mean) / stdDev, 4), 0) /
+      values.length;
+    return kurtosis - 3; // Excess kurtosis
+  }
 }
